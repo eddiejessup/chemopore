@@ -54,6 +54,14 @@ class Runner(object):
             pickle.dump(self.model, file)
 
 
+def pad_length(x, dim):
+    try:
+        x[0]
+    except TypeError:
+        x = dim * [x]
+    return np.array(x)
+
+
 class Model(object):
     def __init__(self,
                  L, dim, dt,
@@ -61,7 +69,7 @@ class Model(object):
                  chi, dt_chemo, memory, t_mem,
                  seed,
                  rc, Rc):
-        self.L = L
+        self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
         self.n = n
@@ -84,7 +92,7 @@ class Model(object):
         self.i, self.t = 0, 0.0
 
     def validate_parameters(self):
-        if self.v_0 and self.L / (self.v_0 * self.dt) < 1000.0:
+        if self.v_0 and min(self.L) / (self.v_0 * self.dt) < 1000.0:
             raise Exception('Time-step too large: particle crosses system '
                             'too fast')
         if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
@@ -102,19 +110,19 @@ class Model(object):
         self.v = self.v_0 * utils.sphere_pick(n=self.n, d=self.dim)
 
         # Initialise positions
-        if self.has_obstacles():
-            self.r = np.empty_like(self.v)
-            for i in range(self.n):
-                while True:
-                    self.r[i] = np.random.uniform(-self.L / 2.0,
-                                                  self.L / 2.0, size=self.dim)
+        self.r = np.empty_like(self.v)
+        for i in range(self.n):
+            while True:
+                for i_dim in range(self.dim):
+                    self.r[i, i_dim] = np.random.uniform(-self.L[i_dim] / 2.0,
+                                                         self.L[i_dim] / 2.0)
+                if self.has_obstacles():
                     sep_sq = csep_periodic_close(self.r[np.newaxis, i],
                                                  self.rc, self.L)[1][0]
                     if sep_sq > self.Rc ** 2:
                         break
-        else:
-            self.r = np.random.uniform(-self.L / 2.0,
-                                       self.L / 2.0, size=(self.n, self.dim))
+                else:
+                    break
 
         self.wraps = np.zeros_like(self.r, dtype=np.int)
 
@@ -179,8 +187,9 @@ class Model(object):
 
         # Wrap particles if they go outside the system boundaries.
         wraps_cur = np.zeros_like(self.wraps, dtype=np.int)
-        wraps_cur += self.r > self.L / 2.0
-        wraps_cur -= self.r < -self.L / 2.0
+        for i_dim in range(self.dim):
+            wraps_cur[:, i_dim] += self.r[:, i_dim] > self.L[i_dim] / 2.0
+            wraps_cur[:, i_dim] -= self.r[:, i_dim] < -self.L[i_dim] / 2.0
         self.wraps += wraps_cur
         self.r -= wraps_cur * self.L
 
