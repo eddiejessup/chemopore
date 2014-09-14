@@ -70,7 +70,7 @@ class Model(object):
                  chi, dt_chemo, memory, t_mem,
                  seed,
                  rc, Rc,
-                 dx, food_0):
+                 dx, food_0, gamma):
         self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
@@ -87,6 +87,7 @@ class Model(object):
         self.Rc = Rc
         self.dx = pad_length(dx, dim)
         self.food_0 = food_0
+        self.gamma = gamma
 
         np.random.seed(self.seed)
         self.validate_parameters()
@@ -168,6 +169,9 @@ class Model(object):
         self.food.constrain(self.food_0, self.mesh.facesRight)
         self.food.constrain(self.food_0, self.mesh.facesTop)
         self.food.constrain(self.food_0, self.mesh.facesUp)
+
+        self.food_PDE = (fipy.TransientTerm() ==
+                         -fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r, self.r_mesh, self.L),
@@ -264,6 +268,7 @@ class Model(object):
 
     def update_fields(self):
         self.update_density()
+        self.food_PDE.solve(var=self.food, dt=self.dt)
 
     def iterate(self):
         self.update_D_rot()
