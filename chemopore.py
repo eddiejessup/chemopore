@@ -70,7 +70,7 @@ class Model(object):
                  chi, dt_chemo, memory, t_mem,
                  seed,
                  rc, Rc,
-                 dx, food_0, gamma):
+                 dx, food_0, gamma, D_food):
         self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
@@ -88,6 +88,7 @@ class Model(object):
         self.dx = pad_length(dx, dim)
         self.food_0 = food_0
         self.gamma = gamma
+        self.D_food = D_food
 
         np.random.seed(self.seed)
         self.validate_parameters()
@@ -171,7 +172,8 @@ class Model(object):
         self.food.constrain(self.food_0, self.mesh.facesUp)
 
         self.food_PDE = (fipy.TransientTerm() ==
-                         -fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+                         fipy.DiffusionTerm(coeff=self.D_food) -
+                         fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r, self.r_mesh, self.L),
