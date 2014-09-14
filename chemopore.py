@@ -70,7 +70,7 @@ class Model(object):
                  chi, dt_chemo, memory, t_mem,
                  seed,
                  rc, Rc,
-                 dx):
+                 dx, food_0):
         self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
@@ -86,6 +86,7 @@ class Model(object):
         self.rc = rc
         self.Rc = Rc
         self.dx = pad_length(dx, dim)
+        self.food_0 = food_0
 
         np.random.seed(self.seed)
         self.validate_parameters()
@@ -158,6 +159,15 @@ class Model(object):
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
+
+        # Set up food field
+        self.food = fipy.CellVariable(name="food", mesh=self.mesh,
+                                      value=self.food_0)
+
+        self.food.constrain(self.food_0, self.mesh.facesLeft)
+        self.food.constrain(self.food_0, self.mesh.facesRight)
+        self.food.constrain(self.food_0, self.mesh.facesTop)
+        self.food.constrain(self.food_0, self.mesh.facesUp)
 
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r, self.r_mesh, self.L),
