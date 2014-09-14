@@ -3,7 +3,8 @@ from ciabatta import utils, pack
 import pickle
 from os.path import join, basename, splitext
 import glob
-from ciabatta.distance import csep_periodic_close
+from ciabatta.distance import csep_periodic_close, cdist_sq_periodic
+import fipy
 
 
 def get_K(t, dt, tau):
@@ -68,7 +69,8 @@ class Model(object):
                  n, v_0, D_rot_0, tumble,
                  chi, dt_chemo, memory, t_mem,
                  seed,
-                 rc, Rc):
+                 rc, Rc,
+                 dx):
         self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
@@ -83,12 +85,14 @@ class Model(object):
         self.seed = seed
         self.rc = rc
         self.Rc = Rc
+        self.dx = pad_length(dx, dim)
 
         np.random.seed(self.seed)
         self.validate_parameters()
         self.initialise_particles()
         if self.chi:
             self.initialise_chemotaxis()
+        self.initialise_fields()
         self.i, self.t = 0, 0.0
 
     def validate_parameters(self):
@@ -144,6 +148,20 @@ class Model(object):
             self.c_mem = np.zeros([self.n, len(self.K_dt_chemo)])
         else:
             self.grad_c = np.array([1.0] + (self.dim - 1) * [0.0])
+
+    def initialise_fields(self):
+        self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
+                                dx=self.dx[0], dy=self.dx[1])
+
+        self.r_mesh = np.array(self.mesh.cellCenters -
+                               self.L[:, np.newaxis] / 2.0).T
+
+        # Set up density field
+        self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
+
+    def get_inds_close(self):
+        return np.argmin(cdist_sq_periodic(self.r, self.r_mesh, self.L),
+                         axis=1)
 
     def update_D_rot(self):
         if self.chi:
@@ -227,10 +245,21 @@ class Model(object):
             # tangential to the obstacle surface.
             self.v[colls] -= 2.0 * v_perp
 
+    def update_density(self):
+        self.rho.value[...] = 0.0
+        inds_close = self.get_inds_close()
+        for ind_close in inds_close:
+            self.rho.value[ind_close] += 1.0 / self.mesh.cellVolumes[ind_close]
+        self.rho.setValue(self.rho.value)
+
+    def update_fields(self):
+        self.update_density()
+
     def iterate(self):
         self.update_D_rot()
         self.update_noise()
         self.update_positions()
+        self.update_fields()
 
         self.i += 1
         self.t += self.dt
