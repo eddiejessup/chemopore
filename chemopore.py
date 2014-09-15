@@ -45,9 +45,9 @@ class Runner(object):
 
     def iterate(self, n):
         for i in range(n):
-            self.model.iterate()
             if not i % self.output_every:
                 self.make_snapshot()
+            self.model.iterate()
 
     def make_snapshot(self):
         filename = join(self.output_dir, '{:010d}.pkl'.format(self.model.i))
