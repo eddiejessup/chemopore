@@ -5,6 +5,7 @@ from os.path import join, basename, splitext
 import glob
 from ciabatta.distance import csep_periodic_close, cdist_sq_periodic
 import fipy
+from make_mesh import make_porous_mesh
 
 
 def get_K(t, dt, tau):
@@ -153,8 +154,11 @@ class Model(object):
             self.grad_c = np.array([1.0] + (self.dim - 1) * [0.0])
 
     def initialise_fields(self):
-        self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
-                                dx=self.dx[0], dy=self.dx[1])
+        if self.has_obstacles():
+            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
+        else:
+            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
+                                    dx=self.dx[0], dy=self.dx[1])
 
         self.r_mesh = self.mesh.cellCenters.value.T - self.L[np.newaxis] / 2.0
 
