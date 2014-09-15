@@ -156,8 +156,7 @@ class Model(object):
         self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
                                 dx=self.dx[0], dy=self.dx[1])
 
-        self.r_mesh = np.array(self.mesh.cellCenters -
-                               self.L[:, np.newaxis] / 2.0).T
+        self.r_mesh = self.mesh.cellCenters.value.T - self.L[np.newaxis] / 2.0
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
