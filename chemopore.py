@@ -1,7 +1,8 @@
 import numpy as np
 from ciabatta import utils, pack
 import pickle
-from os.path import join, basename, splitext
+from os.path import join, basename, splitext, isdir
+import os
 import glob
 from ciabatta.distance import csep_periodic_close, cdist_sq_periodic
 import fipy
@@ -33,7 +34,8 @@ def filename_to_model(filename):
 
 
 class Runner(object):
-    def __init__(self, output_dir, output_every, model=None, input_dir=None):
+    def __init__(self, output_dir, output_every, model=None, input_dir=None,
+                 overwrite=False):
         if model is not None:
             self.model = model
         elif input_dir is not None:
@@ -42,7 +44,16 @@ class Runner(object):
 
         self.output_dir = output_dir
         self.output_every = output_every
-        utils.makedirs_safe(self.output_dir)
+        self.overwrite = overwrite
+
+        if not self.overwrite:
+            utils.makedirs_safe(self.output_dir)
+        elif isdir(self.output_dir):
+            for snapshot in get_filenames(self.output_dir):
+                assert snapshot.endswith('.pkl')
+                os.remove(snapshot)
+        else:
+            os.makedirs(self.output_dir)
 
     def iterate(self, n):
         for i in range(n):
