@@ -6,7 +6,6 @@ gmsh_text_box = '''
 // Define the square that acts as the system boundary.
 
 dx = %(dx)g;
-R = %(R)g;
 Lx = %(Lx)g;
 Ly = %(Ly)g;
 
@@ -27,6 +26,11 @@ Line(4) = {2, 1};
 // Loop is a closed loop of lines.
 // Arguments are indices of lines as defined above.
 Line Loop(1) = {1, 2, 3, 4};
+
+'''
+
+gmsh_text_radius = '''
+R = %(R)g;
 
 '''
 
@@ -57,16 +61,25 @@ Line Loop(i) = {i, i + 1, i + 2, i + 3};
 
 '''
 
+gmsh_text_surface = '''
+// The first argument is the outer loop boundary.
+// The remainder are holes in it.
+Plane Surface(1) = {%(args)s};
+'''
+
 
 def make_porous_mesh(r, R, dx, L):
-    gmsh_text = gmsh_text_box % {'dx': dx[0], 'R': R,
-                                 'Lx': L[0], 'Ly': L[1]}
-    for i in range(len(r)):
-        index = 5 * (i + 1)
-        gmsh_text += gmsh_text_circle % {'x': r[i][0], 'y': r[i][1],
-                                         'i': index}
-    loops = ', '.join([str(n) for n in range(5, 5 * (len(r) + 1), 5)])
-    gmsh_text += 'Plane Surface(1) = {1, %s};' % loops
+    gmsh_text = gmsh_text_box % {'dx': dx[0], 'Lx': L[0], 'Ly': L[1]}
+    loop_indexes = [1]
+    if r is not None and len(r) and R:
+        gmsh_text += gmsh_text_radius % {'R': R}
+        for i in range(len(r)):
+            index = 5 * (i + 1)
+            gmsh_text += gmsh_text_circle % {'x': r[i][0], 'y': r[i][1],
+                                             'i': index}
+            loop_indexes += [index]
+    surface_args = ', '.join([str(index) for index in loop_indexes])
+    gmsh_text += gmsh_text_surface % {'args': surface_args}
     return fipy.Gmsh2D(gmsh_text)
 
 if __name__ == '__main__':

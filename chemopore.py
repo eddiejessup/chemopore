@@ -165,13 +165,7 @@ class Model(object):
             self.grad_c = np.array([1.0] + (self.dim - 1) * [0.0])
 
     def initialise_fields(self):
-        if self.has_obstacles():
-            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
-        else:
-            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
-                                    dx=self.dx[0], dy=self.dx[1])
-
-        self.r_mesh = self.mesh.cellCenters.value.T - self.L[np.newaxis] / 2.0
+        self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
@@ -185,8 +179,9 @@ class Model(object):
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
     def get_inds_close(self):
-        return np.argmin(cdist_sq_periodic(self.r, self.r_mesh, self.L),
-                         axis=1)
+        return np.argmin(cdist_sq_periodic(self.r,
+                                           self.mesh.cellCenters.value.T,
+                                           self.L), axis=1)
 
     def update_D_rot(self):
         if self.chi:
