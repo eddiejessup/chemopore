@@ -166,11 +166,6 @@ class Model(object):
         self.food = fipy.CellVariable(name="food", mesh=self.mesh,
                                       value=self.food_0)
 
-        self.food.constrain(self.food_0, self.mesh.facesLeft)
-        self.food.constrain(self.food_0, self.mesh.facesRight)
-        self.food.constrain(self.food_0, self.mesh.facesTop)
-        self.food.constrain(self.food_0, self.mesh.facesUp)
-
         self.food_PDE = (fipy.TransientTerm() ==
                          fipy.DiffusionTerm(coeff=self.D_food) -
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
