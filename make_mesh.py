@@ -1,48 +1,58 @@
 import fipy
 import numpy as np
 
-
+# All arguments on the left hand side are indices to the various constructions.
 gmsh_text_box = '''
+// Define the square that acts as the system boundary.
+
 dx = %(dx)g;
 R = %(R)g;
 Lx = %(Lx)g;
 Ly = %(Ly)g;
 
-// define the corners of the square
+// Define each corner of the square
+// Arguments are (x, y, z, dx); dx is the desired cell size near that point.
 Point(1) = {Lx / 2, Ly / 2, 0, dx};
 Point(2) = {-Lx / 2, Ly / 2, 0, dx};
 Point(3) = {-Lx / 2, -Ly / 2, 0, dx};
 Point(4) = {Lx / 2, -Ly / 2, 0, dx};
 
-// define the square
+// Line is a straight line between points.
+// Arguments are indices of points as defined above.
 Line(1) = {1, 4};
 Line(2) = {4, 3};
 Line(3) = {3, 2};
 Line(4) = {2, 1};
 
+// Loop is a closed loop of lines.
+// Arguments are indices of lines as defined above.
 Line Loop(1) = {1, 2, 3, 4};
 
 '''
 
 gmsh_text_circle = '''
+// Define a circle that acts as an obstacle
+
+// Circle center coordinates
 x = %(x)g;
 y = %(y)g;
+// The integer to start indexing objects from.
 i = %(i)d;
 
-// define the compass points of the circle
+// Define the center and compass points of the circle.
 Point(i) = {x, y, 0, dx};
 Point(i + 1) = {x - R, y, 0, dx};
 Point(i + 2) = {x, y + R, 0, dx};
 Point(i + 3) = {x + R, y, 0, dx};
 Point(i + 4) = {x, y - R, 0, dx};
 
-// define the circle
+// Circle is confusingly actually an arc line between points.
+// Arguments are indices of: starting point; center of curvature; end point.
 Circle(i) = {i + 1, i, i + 2};
 Circle(i + 1) = {i + 2, i, i + 3};
 Circle(i + 2) = {i + 3, i, i + 4};
 Circle(i + 3) = {i + 4, i, i + 1};
 
-// define the boundaries
 Line Loop(i) = {i, i + 1, i + 2, i + 3};
 
 '''
