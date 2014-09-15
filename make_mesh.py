@@ -9,10 +9,10 @@ Lx = %(Lx)g;
 Ly = %(Ly)g;
 
 // define the corners of the square
-Point(1) = {Lx / 2, Ly / 2, 0, dx / 2};
-Point(2) = {-Lx / 2, Ly / 2, 0, dx / 2};
-Point(3) = {-Lx / 2, -Ly / 2, 0, dx / 2};
-Point(4) = {Lx / 2, -Ly / 2, 0, dx / 2};
+Point(1) = {Lx / 2, Ly / 2, 0, dx};
+Point(2) = {-Lx / 2, Ly / 2, 0, dx};
+Point(3) = {-Lx / 2, -Ly / 2, 0, dx};
+Point(4) = {Lx / 2, -Ly / 2, 0, dx};
 
 // define the square
 Line(1) = {1, 4};
