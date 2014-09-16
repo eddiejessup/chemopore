@@ -167,7 +167,7 @@ class Model(object):
     def initialise_fields(self):
         if self.dim == 1:
             self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
-                                    origin=(-self.L[0] / 2.0))
+                                    origin=(-self.L[0] / 2.0,))
         else:
             self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
 
