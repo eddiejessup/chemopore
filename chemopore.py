@@ -1,5 +1,5 @@
 import numpy as np
-from ciabatta import utils, pack
+from ciabatta import utils
 import pickle
 from os.path import join, basename, splitext, isdir
 import os
