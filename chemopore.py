@@ -111,6 +111,11 @@ class Model(object):
         self.i, self.t = 0, 0.0
 
     def validate_parameters(self):
+        if self.dim == 1 and not self.tumble:
+            raise Exception('Cannot have rotational diffusion in 1D,'
+                            'particles must do tumbling.')
+        if self.dim == 1 and self.has_obstacles():
+            raise Exception('Cannot have obstacles in 1D.')
         if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
             raise Exception('Time-step too large: particle crosses obstacles '
                             'too fast.')
