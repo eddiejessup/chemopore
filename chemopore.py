@@ -299,11 +299,3 @@ class Model(object):
 
         self.i += 1
         self.t += self.dt
-
-
-def save_medium(dirname, r, R, L, seed):
-    n, dim = r.shape
-    pf = pack.n_to_pf(L, dim, n, R)
-    filename = 'medium_d_{}_n_{}_pf_{}_R_{}_s_{}'.format(dim, n, pf, R, seed)
-    path = join(dirname, filename)
-    np.savez(path, r=r, R=R, L=L, seed=seed)
