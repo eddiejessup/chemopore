@@ -117,6 +117,9 @@ class Model(object):
         if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
             raise Exception('Time-step too large: particle randomises '
                             'direction too fast')
+        if self.dt_chemo < self.dt:
+            raise Exception('Chemotaxis time-step must be at least '
+                            'the system timestep')
 
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
@@ -143,9 +146,6 @@ class Model(object):
         self.wraps = np.zeros_like(self.r, dtype=np.int)
 
     def initialise_chemotaxis(self):
-        if self.dt_chemo < self.dt:
-            raise Exception('Chemotaxis time-step must be at least '
-                            'the system timestep')
         # Calculate best dt_chemo that can be managed
         # given that it must be an integer multiple of dt.
         # Update chemotaxis every so many iterations
