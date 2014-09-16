@@ -164,6 +164,7 @@ class Model(object):
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
+        self.update_density()
 
         # Set up food field
         self.food = fipy.CellVariable(name="food", mesh=self.mesh,
