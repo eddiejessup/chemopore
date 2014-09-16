@@ -150,6 +150,8 @@ class Model(object):
 
         self.wraps = np.zeros_like(self.r, dtype=np.int)
 
+        self.D_rot = self.D_rot_0
+
     def initialise_chemotaxis(self):
         # Calculate best dt_chemo that can be managed
         # given that it must be an integer multiple of dt.
@@ -218,8 +220,6 @@ class Model(object):
                 if np.any(self.D_rot <= 0.0) and (not self.memory or
                                                   self.t > self.t_mem):
                     raise Exception
-        else:
-            self.D_rot = self.D_rot_0
 
     def update_noise(self):
         # Do rotational diffusion / tumbling
