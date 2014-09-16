@@ -181,6 +181,9 @@ class Model(object):
                                            self.mesh.cellCenters.value.T,
                                            self.L), axis=1)
 
+    def get_unwrapped_r(self):
+        return self.r + self.wraps * self.L
+
     def update_D_rot(self):
         if self.chi:
             # Update D_rot every `ever_chemo` iterations
