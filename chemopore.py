@@ -179,7 +179,7 @@ class Model(object):
                                             (self.L[1] / 2.0,)))
 
         # Set up density field
-        self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
+        self.rho = fipy.CellVariable(name="density", mesh=self.mesh)
         self.update_density()
 
         # Set up food field
@@ -204,7 +204,7 @@ class Model(object):
             if not self.i % self.every_chemo:
                 inds_close = self.get_inds_close()
                 if self.memory:
-                    c_cur = self.food.value[inds_close]
+                    c_cur = self.food[inds_close]
                     self.c_mem[:, 1:] = self.c_mem.copy()[:, :-1]
                     self.c_mem[:, 0] = c_cur
                     v_dot_grad_c = np.sum(self.c_mem * self.K_dt_chemo, axis=1)
@@ -281,11 +281,10 @@ class Model(object):
             self.v[colls] -= 2.0 * v_perp
 
     def update_density(self):
-        self.rho.value[...] = 0.0
+        self.rho.setValue(0.0)
         inds_close = self.get_inds_close()
         for ind_close in inds_close:
-            self.rho.value[ind_close] += 1.0 / self.mesh.cellVolumes[ind_close]
-        self.rho.setValue(self.rho.value)
+            self.rho[ind_close] += 1.0 / self.mesh.cellVolumes[ind_close]
 
     def update_fields(self):
         self.update_density()
