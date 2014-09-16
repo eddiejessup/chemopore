@@ -122,7 +122,7 @@ class Model(object):
         if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
             raise Exception('Time-step too large: particle randomises '
                             'direction too fast.')
-        if self.dt_chemo < self.dt:
+        if self.chi and self.dt_chemo < self.dt:
             raise Exception('Chemotaxis time-step must be at least '
                             'the system timestep.')
 
