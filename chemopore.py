@@ -161,8 +161,6 @@ class Model(object):
             self.K_dt_chemo = get_K(self.t_mem, self.dt_chemo,
                                     t_rot_0) * self.dt_chemo
             self.c_mem = np.zeros([self.n, len(self.K_dt_chemo)])
-        else:
-            self.grad_c = np.array([1.0] + (self.dim - 1) * [0.0])
 
     def initialise_fields(self):
         self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
@@ -187,13 +185,15 @@ class Model(object):
         if self.chi:
             # Update D_rot every `ever_chemo` iterations
             if not self.i % self.every_chemo:
+                inds_close = self.get_inds_close()
                 if self.memory:
-                    c_cur = (self.r + self.wraps * self.L)[:, 0]
+                    c_cur = self.food.value[inds_close]
                     self.c_mem[:, 1:] = self.c_mem.copy()[:, :-1]
                     self.c_mem[:, 0] = c_cur
                     v_dot_grad_c = np.sum(self.c_mem * self.K_dt_chemo, axis=1)
                 else:
-                    v_dot_grad_c = np.sum(self.v * self.grad_c, axis=-1)
+                    grad_c = self.food.grad().T[inds_close]
+                    v_dot_grad_c = np.sum(self.v * grad_c, axis=-1)
 
                 # Calculate fitness and chemotactic rotational diffusion
                 # constant
