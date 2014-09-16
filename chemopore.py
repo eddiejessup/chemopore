@@ -165,11 +165,16 @@ class Model(object):
             self.c_mem = np.zeros([self.n, len(self.K_dt_chemo)])
 
     def initialise_fields(self):
-        if self.dim == 1:
+        if self.has_obstacles():
+            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
+        elif self.dim == 1:
             self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
                                     origin=(-self.L[0] / 2.0,))
-        else:
-            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
+        elif self.dim == 2:
+            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
+                                    dx=self.dx[0], dy=self.dx[1],
+                                    origin=((-self.L[0] / 2.0,),
+                                            (self.L[1] / 2.0,)))
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh, value=0.0)
