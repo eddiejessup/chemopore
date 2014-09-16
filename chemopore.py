@@ -111,9 +111,6 @@ class Model(object):
         self.i, self.t = 0, 0.0
 
     def validate_parameters(self):
-        if self.v_0 and min(self.L) / (self.v_0 * self.dt) < 1000.0:
-            raise Exception('Time-step too large: particle crosses system '
-                            'too fast')
         if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
             raise Exception('Time-step too large: particle crosses obstacles '
                             'too fast')
