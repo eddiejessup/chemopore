@@ -342,6 +342,7 @@ class AgentModel(Model):
         self.update_positions()
         Model.iterate(self)
 
+
 class CoarseModel(Model):
     def initialise_D_rot_field(self):
         self.D_rot = fipy.CellVariable(name="rotational diffusion constant",
