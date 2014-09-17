@@ -88,6 +88,16 @@ class Model(object):
                                     origin=((-self.L[0] / 2.0,),
                                             (-self.L[1] / 2.0,)))
 
+    def validate_parameters(self):
+        if self.dim == 1 and self.has_obstacles():
+            raise Exception('Cannot have obstacles in 1D.')
+        if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
+            raise Exception('Time-step too large: particle crosses obstacles '
+                            'too fast.')
+        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
+            raise Exception('Time-step too large: particle randomises '
+                            'direction too fast.')
+
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
 
@@ -141,17 +151,10 @@ class AgentModel(Model):
         self.rho_0 = self.n / V
 
     def validate_parameters(self):
+        Model.validate_parameters(self)
         if self.dim == 1 and not self.tumble:
             raise Exception('Cannot have rotational diffusion in 1D,'
                             'particles must do tumbling.')
-        if self.dim == 1 and self.has_obstacles():
-            raise Exception('Cannot have obstacles in 1D.')
-        if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
-            raise Exception('Time-step too large: particle crosses obstacles '
-                            'too fast.')
-        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
-            raise Exception('Time-step too large: particle randomises '
-                            'direction too fast.')
         if self.chi and self.dt_chemo < self.dt:
             raise Exception('Chemotaxis time-step must be at least '
                             'the system timestep.')
@@ -355,16 +358,6 @@ class CoarseModel(Model):
         self.validate_parameters()
         self.initialise_fields()
         self.i, self.t = 0, 0.0
-
-    def validate_parameters(self):
-        if self.dim == 1 and self.has_obstacles():
-            raise Exception('Cannot have obstacles in 1D.')
-        if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
-            raise Exception('Time-step too large: particle crosses obstacles '
-                            'too fast.')
-        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
-            raise Exception('Time-step too large: particle randomises '
-                            'direction too fast.')
 
     def initialise_fields(self):
         self.initialise_mesh()
