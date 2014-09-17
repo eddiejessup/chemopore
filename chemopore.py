@@ -388,7 +388,8 @@ class CoarseModel(Model):
             u_p_dot_grad_c = self.p.dot(grad_c) / (self.p.mag * grad_c.mag)
 
             # Calculate fitness and chemotactic rotational diffusion constant
-            f = self.chi * u_p_dot_grad_c
+            f = np.where(np.isfinite(u_p_dot_grad_c),
+                         self.chi * u_p_dot_grad_c, 0.0)
             self.D_rot.setValue(self.D_rot_0 * (1.0 - f))
             # Check rotational diffusion constant is physically meaningful
             if np.any(self.D_rot <= 0.0):
