@@ -91,6 +91,13 @@ class Model(object):
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
 
+    def initialise_food(self):
+        self.food = fipy.CellVariable(name="food", mesh=self.mesh,
+                                      value=self.food_0, hasOld=True)
+        self.food_PDE = (fipy.TransientTerm() ==
+                         fipy.DiffusionTerm(coeff=self.D_food) -
+                         fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+
 
 class AgentModel(Model):
     def __init__(self,
@@ -196,13 +203,7 @@ class AgentModel(Model):
         # Set up polarisation field
         self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh, rank=1)
 
-        # Set up food field
-        self.food = fipy.CellVariable(name="food", mesh=self.mesh,
-                                      value=self.food_0)
-
-        self.food_PDE = (fipy.TransientTerm() ==
-                         fipy.DiffusionTerm(coeff=self.D_food) -
-                         fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+        self.initialise_food()
 
     def get_p(self):
         self.update_p()
@@ -402,12 +403,7 @@ class CoarseModel(Model):
                                 fipy.ImplicitSourceTerm(coeff=-self.D_rot) -
                                 (self.v_0 / 2.0) * self.rho.grad / self.rho)
 
-        self.food = fipy.CellVariable(name="food", mesh=self.mesh,
-                                      value=self.food_0, hasOld=True)
-
-        self.food_PDE = (fipy.TransientTerm() ==
-                         fipy.DiffusionTerm(coeff=self.D_food) -
-                         fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+        self.initialise_food()
 
     def get_p(self):
         return self.p
