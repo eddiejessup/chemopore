@@ -384,8 +384,7 @@ class CoarseModel(Model):
 
     def update_D_rot(self):
         if self.chi:
-            grad_c = self.food.grad
-            u_p_dot_grad_c = self.p.dot(grad_c) / (self.p.mag * grad_c.mag)
+            u_p_dot_grad_c = self.p.dot(self.food.grad) / self.p.mag
 
             # Calculate fitness and chemotactic rotational diffusion constant
             f = np.where(np.isfinite(u_p_dot_grad_c),
