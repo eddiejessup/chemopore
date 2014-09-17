@@ -95,10 +95,11 @@ class Model(object):
 
         np.random.seed(self.seed)
         self.validate_parameters()
-        self.i, self.t = 0, 0.0
 
         self.initialise_fields()
         self.initialise_equations()
+
+        self.i, self.t = 0, 0.0
 
     def initialise_mesh(self):
         if self.has_obstacles():
