@@ -188,6 +188,9 @@ class Model(object):
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh)
         self.update_density()
 
+        # Set up polarisation field
+        self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh, rank=1)
+
         # Set up food field
         self.food = fipy.CellVariable(name="food", mesh=self.mesh,
                                       value=self.food_0)
@@ -197,15 +200,8 @@ class Model(object):
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
     def get_p(self):
-        p = np.zeros((self.dim,) + self.rho.shape)
-        n = np.zeros(self.rho.shape, dtype=np.int)
-        inds_close = self.get_inds_close()
-        for i, ind_close in enumerate(inds_close):
-            n[ind_close] += 1
-            p[:, ind_close] += self.v[i]
-        p[:, n > 0] /= n[np.newaxis, n > 0]
-        p /= self.v_0
-        return p
+        self.update_p()
+        return self.p
 
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r,
@@ -296,6 +292,15 @@ class Model(object):
             # Reflect the velocity for collided particles in the plane
             # tangential to the obstacle surface.
             self.v[colls] -= 2.0 * v_perp
+
+    def update_p(self):
+        n = np.zeros(self.rho.shape, dtype=np.int)
+        self.p.setValue(0.0)
+        for i, ind_close in enumerate(self.get_inds_close()):
+            n[ind_close] += 1
+            self.p[:, ind_close] += self.v[i]
+        self.p[:, n > 0] = self.p[:, n > 0].value / n[np.newaxis, n > 0]
+        self.p.setValue(self.p / self.v_0)
 
     def update_density(self):
         n = np.zeros(self.rho.shape, dtype=np.int)
