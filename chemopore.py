@@ -78,7 +78,7 @@ def pad_length(x, dim):
 class Model(object):
     def __init__(self,
                  L, dim, dt,
-                 n, v_0, D_rot_0, tumble,
+                 rho_0, v_0, D_rot_0, tumble,
                  chi, dt_chemo, memory, t_mem,
                  seed,
                  rc, Rc,
@@ -86,7 +86,7 @@ class Model(object):
         self.L = pad_length(L, dim)
         self.dim = dim
         self.dt = dt
-        self.n = n
+        self.rho_0 = rho_0
         self.v_0 = v_0
         self.D_rot_0 = D_rot_0
         self.tumble = tumble
@@ -103,12 +103,18 @@ class Model(object):
         self.D_food = D_food
 
         np.random.seed(self.seed)
+        self.calculate_n()
         self.validate_parameters()
         self.initialise_particles()
         if self.chi:
             self.initialise_chemotaxis()
         self.initialise_fields()
         self.i, self.t = 0, 0.0
+
+    def calculate_n(self):
+        V = np.product(self.L)
+        self.n = int(round(self.rho_0 * V))
+        self.rho_0 = self.n / V
 
     def validate_parameters(self):
         if self.dim == 1 and not self.tumble:
