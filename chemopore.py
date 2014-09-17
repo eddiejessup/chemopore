@@ -152,6 +152,11 @@ class Model(object):
     def initialise_equations(self):
         self.initialise_food_equation()
 
+    def iterate(self):
+        self.update_fields()
+        self.i += 1
+        self.t += self.dt
+
 
 class AgentModel(Model):
     def __init__(self, tumble, dt_chemo, memory, t_mem, **kwargs):
@@ -335,11 +340,7 @@ class AgentModel(Model):
         self.update_D_rot()
         self.update_noise()
         self.update_positions()
-        self.update_fields()
-
-        self.i += 1
-        self.t += self.dt
-
+        Model.iterate(self)
 
 class CoarseModel(Model):
     def initialise_D_rot_field(self):
@@ -402,7 +403,4 @@ class CoarseModel(Model):
 
     def iterate(self):
         self.update_D_rot()
-        self.update_fields()
-
-        self.i += 1
-        self.t += self.dt
+        Model.iterate(self)
