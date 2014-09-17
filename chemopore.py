@@ -97,6 +97,9 @@ class Model(object):
         self.validate_parameters()
         self.i, self.t = 0, 0.0
 
+        self.initialise_fields()
+        self.initialise_equations()
+
     def initialise_mesh(self):
         if self.has_obstacles():
             self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
@@ -122,12 +125,31 @@ class Model(object):
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
 
-    def initialise_food(self):
+    def initialise_density_field(self):
+        self.rho = fipy.CellVariable(name="density", mesh=self.mesh,
+                                     hasOld=True)
+
+    def initialise_polarisation_field(self):
+        self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh,
+                                   value=0.0, rank=1, hasOld=True)
+
+    def initialise_food_field(self):
         self.food = fipy.CellVariable(name="food", mesh=self.mesh,
                                       value=self.food_0, hasOld=True)
+
+    def initialise_fields(self):
+        self.initialise_mesh()
+        self.initialise_density_field()
+        self.initialise_polarisation_field()
+        self.initialise_food_field()
+
+    def initialise_food_equation(self):
         self.food_PDE = (fipy.TransientTerm() ==
                          fipy.DiffusionTerm(coeff=self.D_food) -
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+
+    def initialise_equations(self):
+        self.initialise_food_equation()
 
 
 class AgentModel(Model):
@@ -142,7 +164,7 @@ class AgentModel(Model):
         self.initialise_particles()
         if self.chi:
             self.initialise_chemotaxis()
-        self.initialise_fields()
+        self.update_density()
 
     def calculate_n(self):
         V = np.product(self.L)
@@ -194,18 +216,6 @@ class AgentModel(Model):
             self.K_dt_chemo = get_K(self.t_mem, self.dt_chemo,
                                     t_rot_0) * self.dt_chemo
             self.c_mem = np.zeros([self.n, len(self.K_dt_chemo)])
-
-    def initialise_fields(self):
-        self.initialise_mesh()
-
-        # Set up density field
-        self.rho = fipy.CellVariable(name="density", mesh=self.mesh)
-        self.update_density()
-
-        # Set up polarisation field
-        self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh, rank=1)
-
-        self.initialise_food()
 
     def get_p(self):
         self.update_p()
@@ -331,19 +341,15 @@ class AgentModel(Model):
 
 
 class CoarseModel(Model):
-    def __init__(self, **kwargs):
-        Model.__init__(self, **kwargs)
-        self.initialise_fields()
+    def initialise_D_rot_field(self):
+        self.D_rot = fipy.CellVariable(name="rotational diffusion constant",
+                                       rank=1, mesh=self.mesh,
+                                       value=self.D_rot_0)
 
     def initialise_fields(self):
-        self.initialise_mesh()
+        Model.initialise_fields(self)
+        self.initialise_D_rot_field()
 
-        # Set up density
-        # hasOld causes the storage of the value of the variable from the
-        # previous timestep. This is necessary for solving equations with
-        # non-linear coefficients or for coupling between PDEs.
-        self.rho = fipy.CellVariable(name="density", mesh=self.mesh,
-                                     hasOld=True)
         # m_half = self.L[0] // self.dx[0] // 2
         self.rho[...] = np.random.normal(loc=self.rho_0,
                                          scale=np.sqrt(self.rho_0),
@@ -351,28 +357,24 @@ class CoarseModel(Model):
         # scale = 0.5
         # self.rho[...] = np.exp(-np.square(self.mesh.cellCenters[0] /
         #                        scale) / 2.0)
-
         self.rho[...] /= self.rho.sum()
         V = np.product(self.L)
         dV = np.product(self.dx)
         self.rho[...] *= V * self.rho_0 / dV
 
-        # Set up polarisation
-        self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh,
-                                   value=0.0, rank=1, hasOld=True)
-
-        # Set up D_rot
-        self.D_rot = fipy.CellVariable(name="rotational diffusion constant",
-                                       rank=1, mesh=self.mesh,
-                                       value=self.D_rot_0)
-
+    def initialise_density_equation(self):
         self.density_PDE = (fipy.TransientTerm() == -self.v_0 *
                             (self.rho * self.p).arithmeticFaceValue.divergence)
+
+    def initialise_orientation_equation(self):
         self.orientation_PDE = (fipy.TransientTerm() ==
                                 fipy.ImplicitSourceTerm(coeff=-self.D_rot) -
                                 (self.v_0 / 2.0) * self.rho.grad / self.rho)
 
-        self.initialise_food()
+    def initialise_equations(self):
+        Model.initialise_equations(self)
+        self.initialise_density_equation()
+        self.initialise_orientation_equation()
 
     def get_p(self):
         return self.p
