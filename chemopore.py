@@ -182,7 +182,7 @@ class Model(object):
             self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
                                     dx=self.dx[0], dy=self.dx[1],
                                     origin=((-self.L[0] / 2.0,),
-                                            (self.L[1] / 2.0,)))
+                                            (-self.L[1] / 2.0,)))
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh)
