@@ -75,7 +75,21 @@ def pad_length(x, dim):
     return np.array(x)
 
 
-class AgentModel(object):
+class Model(object):
+    def initialise_mesh(self):
+        if self.has_obstacles():
+            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
+        elif self.dim == 1:
+            self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
+                                    origin=(-self.L[0] / 2.0,))
+        elif self.dim == 2:
+            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
+                                    dx=self.dx[0], dy=self.dx[1],
+                                    origin=((-self.L[0] / 2.0,),
+                                            (-self.L[1] / 2.0,)))
+
+
+class AgentModel(Model):
     def __init__(self,
                  L, dim, dt,
                  rho_0, v_0, D_rot_0, tumble,
@@ -173,16 +187,7 @@ class AgentModel(object):
             self.c_mem = np.zeros([self.n, len(self.K_dt_chemo)])
 
     def initialise_fields(self):
-        if self.has_obstacles():
-            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
-        elif self.dim == 1:
-            self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
-                                    origin=(-self.L[0] / 2.0,))
-        elif self.dim == 2:
-            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
-                                    dx=self.dx[0], dy=self.dx[1],
-                                    origin=((-self.L[0] / 2.0,),
-                                            (-self.L[1] / 2.0,)))
+        self.initialise_mesh()
 
         # Set up density field
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh)
@@ -322,7 +327,7 @@ class AgentModel(object):
         self.t += self.dt
 
 
-class CoarseModel(object):
+class CoarseModel(Model):
     def __init__(self,
                  L, dim, dt,
                  rho_0, v_0, D_rot_0,
@@ -364,16 +369,8 @@ class CoarseModel(object):
         return self.rc is not None and len(self.rc) and self.Rc
 
     def initialise_fields(self):
-        if self.has_obstacles():
-            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
-        elif self.dim == 1:
-            self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
-                                    origin=(-self.L[0] / 2.0,))
-        elif self.dim == 2:
-            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
-                                    dx=self.dx[0], dy=self.dx[1],
-                                    origin=((-self.L[0] / 2.0,),
-                                            (-self.L[1] / 2.0,)))
+        self.initialise_mesh()
+
         # Set up density field
         # hasOld causes the storage of the value of the variable from the
         # previous timestep. This is necessary for solving equations with
