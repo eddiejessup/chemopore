@@ -76,6 +76,27 @@ def pad_length(x, dim):
 
 
 class Model(object):
+    def __init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc, Rc, dx,
+                 food_0, gamma, D_food):
+        self.L = pad_length(L, dim)
+        self.dim = dim
+        self.dt = dt
+        self.rho_0 = rho_0
+        self.v_0 = v_0
+        self.D_rot_0 = D_rot_0
+        self.chi = chi
+        self.seed = seed
+        self.rc = rc
+        self.Rc = Rc
+        self.dx = pad_length(dx, dim)
+        self.food_0 = food_0
+        self.gamma = gamma
+        self.D_food = D_food
+
+        np.random.seed(self.seed)
+        self.validate_parameters()
+        self.i, self.t = 0, 0.0
+
     def initialise_mesh(self):
         if self.has_obstacles():
             self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
@@ -110,40 +131,18 @@ class Model(object):
 
 
 class AgentModel(Model):
-    def __init__(self,
-                 L, dim, dt,
-                 rho_0, v_0, D_rot_0, tumble,
-                 chi, dt_chemo, memory, t_mem,
-                 seed,
-                 rc, Rc,
-                 dx, food_0, gamma, D_food):
-        self.L = pad_length(L, dim)
-        self.dim = dim
-        self.dt = dt
-        self.rho_0 = rho_0
-        self.v_0 = v_0
-        self.D_rot_0 = D_rot_0
+    def __init__(self, tumble, dt_chemo, memory, t_mem, **kwargs):
         self.tumble = tumble
-        self.chi = chi
         self.dt_chemo = dt_chemo
         self.memory = memory
         self.t_mem = t_mem
-        self.seed = seed
-        self.rc = rc
-        self.Rc = Rc
-        self.dx = pad_length(dx, dim)
-        self.food_0 = food_0
-        self.gamma = gamma
-        self.D_food = D_food
+        Model.__init__(self, **kwargs)
 
-        np.random.seed(self.seed)
         self.calculate_n()
-        self.validate_parameters()
         self.initialise_particles()
         if self.chi:
             self.initialise_chemotaxis()
         self.initialise_fields()
-        self.i, self.t = 0, 0.0
 
     def calculate_n(self):
         V = np.product(self.L)
@@ -332,32 +331,9 @@ class AgentModel(Model):
 
 
 class CoarseModel(Model):
-    def __init__(self,
-                 L, dim, dt,
-                 rho_0, v_0, D_rot_0,
-                 chi,
-                 seed,
-                 rc, Rc,
-                 dx, food_0, gamma, D_food):
-        self.L = pad_length(L, dim)
-        self.dim = dim
-        self.dt = dt
-        self.rho_0 = rho_0
-        self.v_0 = v_0
-        self.D_rot_0 = D_rot_0
-        self.chi = chi
-        self.seed = seed
-        self.rc = rc
-        self.Rc = Rc
-        self.dx = pad_length(dx, dim)
-        self.food_0 = food_0
-        self.gamma = gamma
-        self.D_food = D_food
-
-        np.random.seed(self.seed)
-        self.validate_parameters()
+    def __init__(self, **kwargs):
+        Model.__init__(self, **kwargs)
         self.initialise_fields()
-        self.i, self.t = 0, 0.0
 
     def initialise_fields(self):
         self.initialise_mesh()
