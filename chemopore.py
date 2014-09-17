@@ -385,8 +385,7 @@ class CoarseModel(Model):
             grad_c = self.food.grad
             u_p_dot_grad_c = self.p.dot(grad_c) / (self.p.mag * grad_c.mag)
 
-            # Calculate fitness and chemotactic rotational diffusion
-            # constant
+            # Calculate fitness and chemotactic rotational diffusion constant
             f = self.chi * u_p_dot_grad_c
             self.D_rot.setValue(self.D_rot_0 * (1.0 - f))
             # Check rotational diffusion constant is physically meaningful
