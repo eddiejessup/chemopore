@@ -298,10 +298,10 @@ class Model(object):
             self.v[colls] -= 2.0 * v_perp
 
     def update_density(self):
-        self.rho.setValue(0.0)
-        inds_close = self.get_inds_close()
-        for ind_close in inds_close:
-            self.rho[ind_close] += 1.0 / self.mesh.cellVolumes[ind_close]
+        n = np.zeros(self.rho.shape, dtype=np.int)
+        for ind_close in self.get_inds_close():
+            n[ind_close] += 1
+        self.rho.setValue(n / self.mesh.cellVolumes)
 
     def update_fields(self):
         self.update_density()
