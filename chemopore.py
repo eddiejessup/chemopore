@@ -320,3 +320,128 @@ class AgentModel(object):
 
         self.i += 1
         self.t += self.dt
+
+
+class CoarseModel(object):
+    def __init__(self,
+                 L, dim, dt,
+                 rho_0, v_0, D_rot_0,
+                 chi,
+                 seed,
+                 rc, Rc,
+                 dx, food_0, gamma, D_food):
+        self.L = pad_length(L, dim)
+        self.dim = dim
+        self.dt = dt
+        self.rho_0 = rho_0
+        self.v_0 = v_0
+        self.D_rot_0 = D_rot_0
+        self.chi = chi
+        self.seed = seed
+        self.rc = rc
+        self.Rc = Rc
+        self.dx = pad_length(dx, dim)
+        self.food_0 = food_0
+        self.gamma = gamma
+        self.D_food = D_food
+
+        np.random.seed(self.seed)
+        self.validate_parameters()
+        self.initialise_fields()
+        self.i, self.t = 0, 0.0
+
+    def validate_parameters(self):
+        if self.dim == 1 and self.has_obstacles():
+            raise Exception('Cannot have obstacles in 1D.')
+        if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
+            raise Exception('Time-step too large: particle crosses obstacles '
+                            'too fast.')
+        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
+            raise Exception('Time-step too large: particle randomises '
+                            'direction too fast.')
+
+    def has_obstacles(self):
+        return self.rc is not None and len(self.rc) and self.Rc
+
+    def initialise_fields(self):
+        if self.has_obstacles():
+            self.mesh = make_porous_mesh(self.rc, self.Rc, self.dx, self.L)
+        elif self.dim == 1:
+            self.mesh = fipy.Grid1D(Lx=self.L[0], dx=self.dx[0],
+                                    origin=(-self.L[0] / 2.0,))
+        elif self.dim == 2:
+            self.mesh = fipy.Grid2D(Lx=self.L[0], Ly=self.L[1],
+                                    dx=self.dx[0], dy=self.dx[1],
+                                    origin=((-self.L[0] / 2.0,),
+                                            (-self.L[1] / 2.0,)))
+        # Set up density field
+        # hasOld causes the storage of the value of the variable from the
+        # previous timestep. This is necessary for solving equations with
+        # non-linear coefficients or for coupling between PDEs.
+        self.rho = fipy.CellVariable(name="density", mesh=self.mesh,
+                                     hasOld=True)
+        # m_half = self.L[0] // self.dx[0] // 2
+        self.rho[...] = np.random.normal(loc=self.rho_0,
+                                         scale=np.sqrt(self.rho_0),
+                                         size=self.rho.shape)
+        # scale = 0.5
+        # self.rho[...] = np.exp(-np.square(self.mesh.cellCenters[0] /
+        #                        scale) / 2.0)
+
+        self.rho[...] /= self.rho.sum()
+        V = np.product(self.L)
+        dV = np.product(self.dx)
+        self.rho[...] *= V * self.rho_0 / dV
+
+        # Set up polarisation field
+        self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh,
+                                   value=0.0, rank=1, hasOld=True)
+
+        # Set up D_rot field
+        self.D_rot = fipy.CellVariable(name="rotational diffusion constant",
+                                       rank=1, mesh=self.mesh,
+                                       value=self.D_rot_0)
+
+        self.density_PDE = (fipy.TransientTerm() == -self.v_0 *
+                            (self.rho * self.p).arithmeticFaceValue.divergence)
+        self.orientation_PDE = (fipy.TransientTerm() ==
+                                fipy.ImplicitSourceTerm(coeff=-self.D_rot) -
+                                (self.v_0 / 2.0) * self.rho.grad / self.rho)
+
+        self.food = fipy.CellVariable(name="food", mesh=self.mesh,
+                                      value=self.food_0, hasOld=True)
+
+        self.food_PDE = (fipy.TransientTerm() ==
+                         fipy.DiffusionTerm(coeff=self.D_food) -
+                         fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
+
+    def get_p(self):
+        return self.p
+
+    def update_D_rot(self):
+        if self.chi:
+            grad_c = self.food.grad
+            u_p_dot_grad_c = self.p.dot(grad_c) / (self.p.mag * grad_c.mag)
+
+            # Calculate fitness and chemotactic rotational diffusion
+            # constant
+            f = self.chi * u_p_dot_grad_c
+            self.D_rot.setValue(self.D_rot_0 * (1.0 - f))
+            # Check rotational diffusion constant is physically meaningful
+            if np.any(self.D_rot <= 0.0):
+                raise Exception
+
+    def update_fields(self):
+        self.rho.updateOld()
+        self.p.updateOld()
+        self.food.updateOld()
+        self.density_PDE.solve(var=self.rho, dt=self.dt)
+        self.orientation_PDE.solve(var=self.p, dt=self.dt)
+        self.food_PDE.solve(var=self.food, dt=self.dt)
+
+    def iterate(self):
+        self.update_D_rot()
+        self.update_fields()
+
+        self.i += 1
+        self.t += self.dt
