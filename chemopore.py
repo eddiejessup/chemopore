@@ -338,7 +338,7 @@ class CoarseModel(Model):
     def initialise_fields(self):
         self.initialise_mesh()
 
-        # Set up density field
+        # Set up density
         # hasOld causes the storage of the value of the variable from the
         # previous timestep. This is necessary for solving equations with
         # non-linear coefficients or for coupling between PDEs.
@@ -357,11 +357,11 @@ class CoarseModel(Model):
         dV = np.product(self.dx)
         self.rho[...] *= V * self.rho_0 / dV
 
-        # Set up polarisation field
+        # Set up polarisation
         self.p = fipy.CellVariable(name="polarisation", mesh=self.mesh,
                                    value=0.0, rank=1, hasOld=True)
 
-        # Set up D_rot field
+        # Set up D_rot
         self.D_rot = fipy.CellVariable(name="rotational diffusion constant",
                                        rank=1, mesh=self.mesh,
                                        value=self.D_rot_0)
