@@ -75,7 +75,7 @@ def pad_length(x, dim):
     return np.array(x)
 
 
-class Model(object):
+class AgentModel(object):
     def __init__(self,
                  L, dim, dt,
                  rho_0, v_0, D_rot_0, tumble,
