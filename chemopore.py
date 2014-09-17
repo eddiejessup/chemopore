@@ -196,6 +196,17 @@ class Model(object):
                          fipy.DiffusionTerm(coeff=self.D_food) -
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
+    def get_p(self):
+        p = np.zeros((self.dim,) + self.rho.shape)
+        n = np.zeros(self.rho.shape, dtype=np.int)
+        inds_close = self.get_inds_close()
+        for i, ind_close in enumerate(inds_close):
+            n[ind_close] += 1
+            p[:, ind_close] += self.v[i]
+        p[:, n > 0] /= n[np.newaxis, n > 0]
+        p /= self.v_0
+        return p
+
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r,
                                            self.mesh.cellCenters.value.T,
