@@ -367,7 +367,7 @@ class CoarseModel(Model):
 
     def initialise_density_equation(self):
         self.density_PDE = (fipy.TransientTerm() == -self.v_0 *
-                            (self.rho * self.p).arithmeticFaceValue.divergence)
+                            fipy.PowerLawConvectionTerm(coeff=self.p))
 
     def initialise_orientation_equation(self):
         self.orientation_PDE = (fipy.TransientTerm() ==
