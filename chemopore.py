@@ -81,18 +81,11 @@ class Runner(object):
             pickle.dump(self.model, file)
 
 
-def pad_length(x, dim):
-    try:
-        x[0]
-    except TypeError:
-        x = dim * [x]
-    return np.array(x)
-
 
 class Model(object):
     def __init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc, Rc, dx,
                  food_0, gamma, D_food):
-        self.L = pad_length(L, dim)
+        self.L = utils.pad_length(L, dim)
         self.dim = dim
         self.dt = dt
         self.rho_0 = rho_0
@@ -102,7 +95,7 @@ class Model(object):
         self.seed = seed
         self.rc = rc
         self.Rc = Rc
-        self.dx = pad_length(dx, dim)
+        self.dx = utils.pad_length(dx, dim)
         self.food_0 = food_0
         self.gamma = gamma
         self.D_food = D_food
