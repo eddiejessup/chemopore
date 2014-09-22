@@ -96,7 +96,8 @@ class Model(object):
         np.random.seed(self.seed)
         self.validate_parameters()
 
-        self.initialise_fields()
+        if self.has_lattice():
+            self.initialise_fields()
         self.initialise_equations()
 
         self.i, self.t = 0, 0.0
@@ -126,6 +127,14 @@ class Model(object):
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
 
+    def has_food_field(self):
+        return self.has_lattice() and (self.food_0 is not None or
+                                       self.gamma is not None or
+                                       self.D_food is not None)
+
+    def has_lattice(self):
+        return any([e is not None for e in self.dx])
+
     def initialise_density_field(self):
         self.rho = fipy.CellVariable(name="density", mesh=self.mesh,
                                      hasOld=True)
@@ -142,7 +151,8 @@ class Model(object):
         self.initialise_mesh()
         self.initialise_density_field()
         self.initialise_polarisation_field()
-        self.initialise_food_field()
+        if self.has_food_field():
+            self.initialise_food_field()
 
     def initialise_food_equation(self):
         self.food_PDE = (fipy.TransientTerm() ==
@@ -150,7 +160,8 @@ class Model(object):
                          fipy.ImplicitSourceTerm(coeff=self.gamma * self.rho))
 
     def initialise_equations(self):
-        self.initialise_food_equation()
+        if self.has_food_field():
+            self.initialise_food_equation()
 
     def iterate(self):
         self.update_fields()
@@ -170,7 +181,6 @@ class AgentModel(Model):
         self.initialise_particles()
         if self.chi:
             self.initialise_chemotaxis()
-        self.update_density()
 
     def calculate_n(self):
         V = np.product(self.L)
@@ -226,6 +236,10 @@ class AgentModel(Model):
     def get_p(self):
         self.update_p()
         return self.p
+
+    def get_density(self):
+        self.update_density()
+        return self.rho
 
     def get_inds_close(self):
         return np.argmin(cdist_sq_periodic(self.r,
@@ -333,8 +347,9 @@ class AgentModel(Model):
         self.rho.setValue(n / self.mesh.cellVolumes)
 
     def update_fields(self):
-        self.update_density()
-        self.food_PDE.solve(var=self.food, dt=self.dt)
+        if self.has_food_field():
+            self.update_density()
+            self.food_PDE.solve(var=self.food, dt=self.dt)
 
     def iterate(self):
         self.update_D_rot()
@@ -397,10 +412,12 @@ class CoarseModel(Model):
     def update_fields(self):
         self.rho.updateOld()
         self.p.updateOld()
-        self.food.updateOld()
+        if self.has_food_field():
+            self.food.updateOld()
         self.density_PDE.solve(var=self.rho, dt=self.dt)
         self.orientation_PDE.solve(var=self.p, dt=self.dt)
-        self.food_PDE.solve(var=self.food, dt=self.dt)
+        if self.has_food_field():
+            self.food_PDE.solve(var=self.food, dt=self.dt)
 
     def iterate(self):
         self.update_D_rot()
