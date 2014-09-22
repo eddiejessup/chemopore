@@ -186,12 +186,15 @@ class Model(object):
 
 
 class AgentModel(Model):
-    def __init__(self, tumble, dt_chemo, memory, t_mem, **kwargs):
+    def __init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc, Rc, dx,
+                 food_0, gamma, D_food,
+                 tumble, dt_chemo, memory, t_mem):
         self.tumble = tumble
         self.dt_chemo = dt_chemo
         self.memory = memory
         self.t_mem = t_mem
-        Model.__init__(self, **kwargs)
+        Model.__init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc,
+                       Rc, dx, food_0, gamma, D_food)
 
         self.calculate_n()
         self.initialise_particles()
