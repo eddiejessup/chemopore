@@ -33,12 +33,24 @@ def filename_to_model(filename):
         return pickle.load(file)
 
 
+def format_parameter(p):
+    if isinstance(p, float):
+        return '{:.3g}'.format(p)
+    elif p is None:
+        return 'N'
+    elif isinstance(p, bool):
+        return '{:d}'.format(p)
+    else:
+        return '{}'.format(p)
+
+
 def make_output_dirname(args):
     fields = []
     for key, val in sorted(args.items()):
         if key == 'rc':
             val = len(args[key])
-        fields.append('-'.join([key, str(val)]))
+        fields.append('-'.join([key, format_parameter(val)]))
+
     return ','.join(fields)
 
 
@@ -180,9 +192,11 @@ class Model(object):
         self.t += self.dt
 
     def __str__(self):
+        f = format_parameter
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={})')
         return info.format(self.__class__.__name__, self.dim, self.L,
-                           self.Rc, len(self.rc), self.chi, self.D_rot_0)
+                           f(self.Rc), len(self.rc), f(self.chi),
+                           f(self.D_rot_0))
 
 
 class AgentModel(Model):
@@ -377,11 +391,13 @@ class AgentModel(Model):
         Model.iterate(self)
 
     def __str__(self):
+        f = format_parameter
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, '
                 'tumble={}, n={}, memory={})')
         return info.format(self.__class__.__name__, self.dim, self.L,
-                           self.Rc, len(self.rc), self.chi, self.D_rot_0,
-                           self.tumble, self.n, self.memory)
+                           f(self.Rc), len(self.rc), f(self.chi),
+                           f(self.D_rot_0),
+                           f(self.tumble), self.n, f(self.memory))
 
 
 class CoarseModel(Model):
