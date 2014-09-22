@@ -34,7 +34,12 @@ def filename_to_model(filename):
 
 
 def make_output_dirname(args):
-    return ','.join(['-'.join([k, str(args[k])]) for k in args])
+    fields = []
+    for key, val in sorted(args.items()):
+        if key == 'rc':
+            val = len(args[key])
+        fields.append('-'.join([key, str(val)]))
+    return ','.join(fields)
 
 
 def make_and_run(output_dirname, output_every, model, overwrite, n_iterations):
