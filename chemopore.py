@@ -80,6 +80,10 @@ class Runner(object):
         with open(filename, 'wb') as file:
             pickle.dump(self.model, file)
 
+    def __str__(self):
+        info = '{}(out={}, model={})'
+        return info.format(self.__class__.__name__, basename(self.output_dir),
+                           self.model)
 
 
 class Model(object):
@@ -174,6 +178,11 @@ class Model(object):
         self.update_fields()
         self.i += 1
         self.t += self.dt
+
+    def __str__(self):
+        info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={})')
+        return info.format(self.__class__.__name__, self.dim, self.L,
+                           self.Rc, len(self.rc), self.chi, self.D_rot_0)
 
 
 class AgentModel(Model):
@@ -363,6 +372,13 @@ class AgentModel(Model):
         self.update_noise()
         self.update_positions()
         Model.iterate(self)
+
+    def __str__(self):
+        info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, '
+                'tumble={}, n={}, memory={})')
+        return info.format(self.__class__.__name__, self.dim, self.L,
+                           self.Rc, len(self.rc), self.chi, self.D_rot_0,
+                           self.tumble, self.n, self.memory)
 
 
 class CoarseModel(Model):
