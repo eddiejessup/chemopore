@@ -33,6 +33,10 @@ def filename_to_model(filename):
         return pickle.load(file)
 
 
+def make_output_dirname(args):
+    return ','.join(['-'.join([k, str(args[k])]) for k in args])
+
+
 class Runner(object):
     def __init__(self, output_dir, output_every, model=None, input_dir=None,
                  overwrite=False):
