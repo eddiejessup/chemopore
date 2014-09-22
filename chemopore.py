@@ -37,6 +37,11 @@ def make_output_dirname(args):
     return ','.join(['-'.join([k, str(args[k])]) for k in args])
 
 
+def make_and_run(output_dirname, output_every, model, overwrite, n_iterations):
+    r = Runner(output_dirname, output_every, model=model, overwrite=True)
+    r.iterate(n_iterations)
+
+
 class Runner(object):
     def __init__(self, output_dir, output_every, model=None, input_dir=None,
                  overwrite=False):
