@@ -1,6 +1,7 @@
 import multiprocessing
 from functools import partial
 import chemopore
+from os.path import join
 
 
 def iterate(runner, n_iterations):
@@ -16,12 +17,13 @@ def pool_run(runners, n_iterations):
     pool.join()
 
 
-def pool_run_args(argses, output_every, n_iterations):
+def pool_run_args(argses, super_dirname, output_every, n_iterations):
     runners = []
     for args in argses:
         output_dirname = chemopore.make_output_dirname(args)
+        output_dirpath = join(super_dirname, output_dirname)
         model = chemopore.AgentModel(**args)
-        runner = chemopore.Runner(output_dirname, output_every, model,
+        runner = chemopore.Runner(output_dirpath, output_every, model,
                                   overwrite=True)
         runners.append(runner)
     pool_run(runners, n_iterations)
