@@ -22,14 +22,12 @@ def pool_run_args(argses, super_dirname, output_every, n_iterations, resume):
     for args in argses:
         output_dirname = chemopore.make_output_dirname(args)
         output_dirpath = join(super_dirname, output_dirname)
-        output_filenames = chemopore.get_filenames(output_dirpath)
-        if resume and output_filenames:
-            model = chemopore.filename_to_model(output_filenames[-1])
-            overwrite = False
+        if resume and chemopore.get_filenames(output_dirpath):
+            runner = chemopore.Runner(output_dirpath, output_every)
         else:
             model = chemopore.AgentModel(**args)
-            overwrite = True
-        runner = chemopore.Runner(output_dirpath, output_every, model,
-                                  overwrite)
+            runner = chemopore.Runner(output_dirpath, output_every,
+                                      model=model)
+            runner.clear_dir()
         runners.append(runner)
     pool_run(runners, n_iterations)

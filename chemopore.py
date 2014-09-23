@@ -59,30 +59,27 @@ def make_and_run(output_dirname, output_every, model, overwrite, n_iterations):
 
 
 class Runner(object):
-    def __init__(self, output_dir, output_every, model=None, overwrite=False):
+    def __init__(self, output_dir, output_every, model=None):
         self.output_dir = output_dir
         self.output_every = output_every
         self.model = model
 
-        # If a model is provided, run that
-        if self.model is not None:
-            # If directory exists, clear it if we are overwriting.
-            if isdir(self.output_dir):
-                if overwrite:
-                    for snapshot in get_filenames(self.output_dir):
-                        assert snapshot.endswith('.pkl')
-                        os.remove(snapshot)
-            # If directory does not exist, create it.
-            else:
-                os.makedirs(self.output_dir)
+        if not isdir(self.output_dir):
+            os.makedirs(self.output_dir)
+
         # If no model is provided, assume we are resuming from the output
         # directory and unpickle the most recent model from that.
-        else:
+        if self.model is None:
             output_filenames = get_filenames(self.output_dir)
             if output_filenames:
                 self.model = filename_to_model(output_filenames[-1])
             else:
                 raise IOError('Can not find any output pickles to resume from')
+
+    def clear_dir(self):
+        for snapshot in get_filenames(self.output_dir):
+            assert snapshot.endswith('.pkl')
+            os.remove(snapshot)
 
     def iterate(self, n):
         for i in range(n):
