@@ -1,4 +1,4 @@
-from chemopore import get_filenames, filename_to_model
+from runner import get_filenames, filename_to_model
 import numpy as np
 import dynamics
 from ciabatta import pack

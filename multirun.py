@@ -1,6 +1,7 @@
 import multiprocessing
 from functools import partial
-import chemopore
+from runner import Runner, make_output_dirname, get_filenames
+from model import AgentModel
 from os.path import join
 
 
@@ -20,14 +21,14 @@ def pool_run(runners, t_upto):
 def pool_run_args(argses, super_dirname, output_every, t_upto, resume):
     runners = []
     for args in argses:
-        output_dirname = chemopore.make_output_dirname(args)
+        output_dirname = make_output_dirname(args)
         output_dirpath = join(super_dirname, output_dirname)
-        if resume and chemopore.get_filenames(output_dirpath):
-            runner = chemopore.Runner(output_dirpath, output_every)
+        if resume and get_filenames(output_dirpath):
+            runner = Runner(output_dirpath, output_every)
         else:
-            model = chemopore.AgentModel(**args)
-            runner = chemopore.Runner(output_dirpath, output_every,
-                                      model=model)
+            model = AgentModel(**args)
+            runner = Runner(output_dirpath, output_every,
+                            model=model)
             runner.clear_dir()
         runners.append(runner)
     pool_run(runners, t_upto)

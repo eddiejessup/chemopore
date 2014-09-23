@@ -1,17 +1,17 @@
-import chemopore
+from runner import get_filenames, filename_to_model
 import numpy as np
 from scipy.stats import sem
 
 
 def particle_dynamics(output_dirname):
-    output_filenames = chemopore.get_filenames(output_dirname)
+    output_filenames = get_filenames(output_dirname)
     first_output_filename = output_filenames[0]
-    first_model = chemopore.filename_to_model(first_output_filename)
+    first_model = filename_to_model(first_output_filename)
     v_drifts, v_drifts_err = [], []
     Ds, Ds_err = [], []
     D_totals, D_totals_err = [], []
     for output_filename in output_filenames:
-        model = chemopore.filename_to_model(output_filename)
+        model = filename_to_model(output_filename)
         dr = model.get_unwrapped_r() - first_model.get_unwrapped_r()
         dt = model.t - first_model.t
 
