@@ -11,7 +11,7 @@ def iterate(runner, n_iterations):
 
 def pool_run(runners, n_iterations):
     iterate_partial = partial(iterate, n_iterations=n_iterations)
-    pool = multiprocessing.Pool(processes=3)
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
     pool.map(iterate_partial, runners)
     pool.close()
     pool.join()
