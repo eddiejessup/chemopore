@@ -17,13 +17,18 @@ def pool_run(runners, n_iterations):
     pool.join()
 
 
-def pool_run_args(argses, super_dirname, output_every, n_iterations):
+def pool_run_args(argses, super_dirname, output_every, n_iterations, resume):
     runners = []
     for args in argses:
         output_dirname = chemopore.make_output_dirname(args)
         output_dirpath = join(super_dirname, output_dirname)
-        model = chemopore.AgentModel(**args)
+        if resume:
+            model = None
+            overwrite = False
+        else:
+            model = chemopore.AgentModel(**args)
+            overwrite = True
         runner = chemopore.Runner(output_dirpath, output_every, model,
-                                  overwrite=True)
+                                  overwrite)
         runners.append(runner)
     pool_run(runners, n_iterations)
