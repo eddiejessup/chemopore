@@ -50,7 +50,6 @@ def make_output_dirname(args):
         if key == 'rc':
             val = len(args[key])
         fields.append('-'.join([key, format_parameter(val)]))
-
     return ','.join(fields)
 
 
@@ -60,26 +59,35 @@ def make_and_run(output_dirname, output_every, model, overwrite, n_iterations):
 
 
 class Runner(object):
-    def __init__(self, output_dir, output_every, model=None, input_dir=None,
-                 overwrite=False):
-        if model is not None:
-            self.model = model
-        elif input_dir is not None:
-            recent_filename = get_filenames(input_dir)[-1]
-            self.model = filename_to_model(recent_filename)
-
+    def __init__(self, output_dir, output_every, model=None, overwrite=False):
         self.output_dir = output_dir
         self.output_every = output_every
+        self.model = model
         self.overwrite = overwrite
 
-        if not self.overwrite:
-            utils.makedirs_safe(self.output_dir)
-        elif isdir(self.output_dir):
-            for snapshot in get_filenames(self.output_dir):
-                assert snapshot.endswith('.pkl')
-                os.remove(snapshot)
+        # If a model is provided, run that
+        if self.model is not None:
+            # If directory exists, clear it if we are overwriting, otherwise
+            # raise an Exception.
+            if isdir(self.output_dir):
+                if self.overwrite:
+                    for snapshot in get_filenames(self.output_dir):
+                        assert snapshot.endswith('.pkl')
+                        os.remove(snapshot)
+                else:
+                    raise IOError('Output directory exists: remove it or set '
+                                  '`overwrite` flag to True')
+            # If directory does not exist, create it.
+            else:
+                os.makedirs(self.output_dir)
+        # If no model is provided, assume we are resuming from the output
+        # directory and unpickle the most recent model from that.
         else:
-            os.makedirs(self.output_dir)
+            output_filenames = get_filenames(self.output_dir)
+            if output_filenames:
+                self.model = filename_to_model(output_filenames[-1])
+            else:
+                raise IOError('Can not find any output pickles to resume from')
 
     def iterate(self, n):
         for i in range(n):
