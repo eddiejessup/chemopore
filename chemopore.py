@@ -63,13 +63,12 @@ class Runner(object):
         self.output_dir = output_dir
         self.output_every = output_every
         self.model = model
-        self.overwrite = overwrite
 
         # If a model is provided, run that
         if self.model is not None:
             # If directory exists, clear it if we are overwriting.
             if isdir(self.output_dir):
-                if self.overwrite:
+                if overwrite:
                     for snapshot in get_filenames(self.output_dir):
                         assert snapshot.endswith('.pkl')
                         os.remove(snapshot)
