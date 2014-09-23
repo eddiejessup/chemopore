@@ -22,8 +22,9 @@ def pool_run_args(argses, super_dirname, output_every, n_iterations, resume):
     for args in argses:
         output_dirname = chemopore.make_output_dirname(args)
         output_dirpath = join(super_dirname, output_dirname)
-        if resume:
-            model = None
+        output_filenames = chemopore.get_filenames(output_dirpath)
+        if resume and output_filenames:
+            model = chemopore.filename_to_model(output_filenames[-1])
             overwrite = False
         else:
             model = chemopore.AgentModel(**args)

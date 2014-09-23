@@ -67,16 +67,12 @@ class Runner(object):
 
         # If a model is provided, run that
         if self.model is not None:
-            # If directory exists, clear it if we are overwriting, otherwise
-            # raise an Exception.
+            # If directory exists, clear it if we are overwriting.
             if isdir(self.output_dir):
                 if self.overwrite:
                     for snapshot in get_filenames(self.output_dir):
                         assert snapshot.endswith('.pkl')
                         os.remove(snapshot)
-                else:
-                    raise IOError('Output directory exists: remove it or set '
-                                  '`overwrite` flag to True')
             # If directory does not exist, create it.
             else:
                 os.makedirs(self.output_dir)
