@@ -35,7 +35,7 @@ def run_D_of_phi(output_every, n_iterations, tumble, phis):
         args['rc'] = rc
         args['Rc'] = Rc
         argses.append(args)
-    multirun.pool_run(argses, n_iterations)
+    multirun.pool_run_args(argses, output_every, n_iterations)
 
 
 def measure_D_of_Dr(output_dirnames):
