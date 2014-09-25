@@ -45,6 +45,8 @@ def measure_D_of_Dr(output_dirnames):
     D_rot_0s, Ds, Ds_err = [], [], []
     for output_dirname in output_dirnames:
         output_filenames = get_filenames(output_dirname)
+        if not output_filenames:
+            continue
         first_model = filename_to_model(output_filenames[0])
         recent_model = filename_to_model(output_filenames[-1])
         dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
@@ -63,6 +65,8 @@ def measure_D_of_phi(output_dirnames):
     phis, Ds, Ds_err = [], [], []
     for output_dirname in output_dirnames:
         output_filenames = get_filenames(output_dirname)
+        if not output_filenames:
+            continue
         first_model = filename_to_model(output_filenames[0])
         recent_model = filename_to_model(output_filenames[-1])
         dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
