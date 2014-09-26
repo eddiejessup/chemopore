@@ -71,9 +71,6 @@ class Model(object):
         if self.v_0 and self.Rc and self.Rc / (self.v_0 * self.dt) < 10.0:
             raise Exception('Time-step too large: particle crosses obstacles '
                             'too fast.')
-        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
-            raise Exception('Time-step too large: particle randomises '
-                            'direction too fast.')
 
     def has_obstacles(self):
         return self.rc is not None and len(self.rc) and self.Rc
@@ -150,6 +147,9 @@ class AgentModel(Model):
 
     def validate_parameters(self):
         Model.validate_parameters(self)
+        if self.D_rot_0 and np.pi / np.sqrt(self.D_rot_0 * self.dt) < 50.0:
+            raise Exception('Time-step too large: particle randomises '
+                            'direction too fast.')
         if self.dim == 1 and not self.tumble:
             raise Exception('Cannot have rotational diffusion in 1D,'
                             'particles must do tumbling.')
