@@ -71,7 +71,11 @@ def measure_D_of_Dr(output_dirnames):
         D_rot_0s.append(D_rot_0)
         Ds.append(D_total_mean)
         Ds_err.append(D_total_err)
-    return np.array(D_rot_0s), np.array(Ds), np.array(Ds_err)
+    i_increasing_D_rot_0 = np.argsort(D_rot_0s)
+    D_rot_0s = np.array(D_rot_0s)[i_increasing_D_rot_0]
+    Ds = np.array(Ds)[i_increasing_D_rot_0]
+    Ds_err = np.array(Ds_err)[i_increasing_D_rot_0]
+    return D_rot_0s, Ds, Ds_err
 
 
 def measure_D_of_phi(output_dirnames):
@@ -91,7 +95,11 @@ def measure_D_of_phi(output_dirnames):
         phis.append(phi)
         Ds.append(D_total_mean)
         Ds_err.append(D_total_err)
-    return np.array(phis), np.array(Ds), np.array(Ds_err)
+    i_increasing_phi = np.argsort(phis)
+    phis = np.array(phis)[i_increasing_phi]
+    Ds = np.array(Ds)[i_increasing_phi]
+    Ds_err = np.array(Ds_err)[i_increasing_phi]
+    return phis, Ds, Ds_err
 
 
 def measure_vd_of_chi(output_dirnames):
@@ -111,4 +119,8 @@ def measure_vd_of_chi(output_dirnames):
         chis.append(chi)
         vds.append(v_drift_mean)
         vds_err.append(v_drift_err)
-    return np.array(chis), np.array(vds), np.array(vds_err)
+    i_increasing_chi = np.argsort(chis)
+    chis = np.array(chis)[i_increasing_chi]
+    vds = np.array(vds)[i_increasing_chi]
+    vds_err = np.array(vds_err)[i_increasing_chi]
+    return chis, vds, vds_err
