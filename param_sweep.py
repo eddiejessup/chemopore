@@ -25,10 +25,12 @@ def run_over_Dr(super_dirname, output_every, t_upto, resume,
 
 
 def run_over_phi(super_dirname, output_every, t_upto, resume,
-                 tumble, phis):
+                 tumble, chi, phis):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
+
+    args['chi'] = chi
 
     argses = []
     for phi in phis:
