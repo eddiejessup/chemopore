@@ -25,11 +25,13 @@ def run_over_Dr(super_dirname, output_every, t_upto, resume,
 
 
 def run_over_phi(super_dirname, output_every, t_upto, resume,
-                 tumble, chi, phis):
+                 tumble, memory, chi, phis):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
 
+    args['fixed_food_gradient'] = True
+    args['memory'] = memory
     args['chi'] = chi
 
     argses = []
