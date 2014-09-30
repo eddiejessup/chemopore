@@ -6,59 +6,41 @@ import multirun
 from parameters import defaults, agent_defaults
 
 
-def run_over_Dr(super_dirname, output_every, t_upto, resume,
-                tumble, memory, chi, phi, D_rot_0s):
+def run_over_x(super_dirname, output_every, t_upto, resume,
+               tumble, memory,
+               x_key, chi, phi, D_rot_0):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
-
     args['fixed_food_gradient'] = True
     args['memory'] = memory
-    args['chi'] = chi
 
-    rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
-                       pf=phi)
-    args['rc'] = rc
-    args['Rc'] = Rc
-
-    argses = []
-    for D_rot_0 in D_rot_0s:
+    if x_key == 'chi':
+        xs = chi
+    else:
+        args['chi'] = chi
+    if x_key == 'D_rot_0':
+        xs = D_rot_0
+    else:
         args['D_rot_0'] = D_rot_0
-        argses.append(args.copy())
-    multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
-
-
-def run_over_phi(super_dirname, output_every, t_upto, resume,
-                 tumble, memory, chi, phis):
-    args = defaults.copy()
-    args.update(agent_defaults)
-    args['tumble'] = tumble
-
-    args['fixed_food_gradient'] = True
-    args['memory'] = memory
-    args['chi'] = chi
-
-    argses = []
-    for phi in phis:
-        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=phi)
+    if x_key == 'phi':
+        xs = phi
+    else:
+        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
+                           pf=phi)
         args['rc'] = rc
         args['Rc'] = Rc
-        argses.append(args.copy())
-    multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
-
-
-def run_over_chi(super_dirname, output_every, t_upto, resume,
-                 tumble, memory, chis):
-    args = defaults.copy()
-    args.update(agent_defaults)
-    args['tumble'] = tumble
-
-    args['fixed_food_gradient'] = True
-    args['memory'] = memory
 
     argses = []
-    for chi in chis:
-        args['chi'] = chi
+    for x in xs:
+        if x_key == 'chi':
+            args['chi'] = x
+        elif x_key == 'phi':
+            rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=x)
+            args['rc'] = rc
+            args['Rc'] = Rc
+        elif x_key == 'D_rot_0':
+            args['D_rot_0'] = x
         argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
