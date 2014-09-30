@@ -7,13 +7,13 @@ from parameters import defaults, agent_defaults
 
 
 def run_over_Dr(super_dirname, output_every, t_upto, resume,
-                tumble, packing_fraction, D_rot_0s):
+                tumble, phi, D_rot_0s):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
 
     rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
-                       pf=packing_fraction)
+                       pf=phi)
     args['rc'] = rc
     args['Rc'] = Rc
 
