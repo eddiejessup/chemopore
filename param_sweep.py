@@ -59,8 +59,8 @@ def run_over_chi(super_dirname, output_every, t_upto, resume,
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
-def measure_D_of_Dr(output_dirnames):
-    D_rot_0s, Ds, Ds_err = [], [], []
+def measure_y_of_x(output_dirnames, x_key, y_key):
+    xs, ys, ys_err = [], [], []
     for output_dirname in output_dirnames:
         output_filenames = get_filenames(output_dirname)
         if not output_filenames:
@@ -71,61 +71,31 @@ def measure_D_of_Dr(output_dirnames):
         (D_mean, D_err, v_drift_mean, v_drift_err,
          D_total_mean, D_total_err) = dynamics.particle_dynamics(dr, dt)
 
-        D_rot_0 = first_model.D_rot_0
+        if x_key == 'chi':
+            x = first_model.chi
+        elif x_key == 'Dr':
+            x = first_model.D_rot_0
+        elif x_key == 'phi':
+            x = pack.n_to_pf(first_model.L[0], first_model.dim,
+                             len(first_model.rc), first_model.Rc)
+        else:
+            raise Exception('Unknown independent variable')
 
-        D_rot_0s.append(D_rot_0)
-        Ds.append(D_total_mean)
-        Ds_err.append(D_total_err)
-    i_increasing_D_rot_0 = np.argsort(D_rot_0s)
-    D_rot_0s = np.array(D_rot_0s)[i_increasing_D_rot_0]
-    Ds = np.array(Ds)[i_increasing_D_rot_0]
-    Ds_err = np.array(Ds_err)[i_increasing_D_rot_0]
-    return D_rot_0s, Ds, Ds_err
+        if y_key == 'D':
+            y = D_total_mean
+            y_err = D_total_err
+        elif y_key == 'vd':
+            y = v_drift_mean[0]
+            y_err = v_drift_err[0]
+        else:
+            raise Exception('Unknown dependent variable')
 
+        xs.append(x)
+        ys.append(y)
+        ys_err.append(y_err)
 
-def measure_D_of_phi(output_dirnames):
-    phis, Ds, Ds_err = [], [], []
-    for output_dirname in output_dirnames:
-        output_filenames = get_filenames(output_dirname)
-        if not output_filenames:
-            continue
-        first_model = filename_to_model(output_filenames[0])
-        recent_model = filename_to_model(output_filenames[-1])
-        dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
-        (D_mean, D_err, v_drift_mean, v_drift_err,
-         D_total_mean, D_total_err) = dynamics.particle_dynamics(dr, dt)
-
-        phi = pack.n_to_pf(first_model.L[0], first_model.dim,
-                           len(first_model.rc), first_model.Rc)
-        phis.append(phi)
-        Ds.append(D_total_mean)
-        Ds_err.append(D_total_err)
-    i_increasing_phi = np.argsort(phis)
-    phis = np.array(phis)[i_increasing_phi]
-    Ds = np.array(Ds)[i_increasing_phi]
-    Ds_err = np.array(Ds_err)[i_increasing_phi]
-    return phis, Ds, Ds_err
-
-
-def measure_vd_of_chi(output_dirnames):
-    chis, vds, vds_err = [], [], []
-    for output_dirname in output_dirnames:
-        output_filenames = get_filenames(output_dirname)
-        if not output_filenames:
-            continue
-        first_model = filename_to_model(output_filenames[0])
-        recent_model = filename_to_model(output_filenames[-1])
-        dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
-        (D_mean, D_err, v_drift_mean, v_drift_err,
-         D_total_mean, D_total_err) = dynamics.particle_dynamics(dr, dt)
-
-        chi = first_model.chi
-
-        chis.append(chi)
-        vds.append(v_drift_mean)
-        vds_err.append(v_drift_err)
-    i_increasing_chi = np.argsort(chis)
-    chis = np.array(chis)[i_increasing_chi]
-    vds = np.array(vds)[i_increasing_chi]
-    vds_err = np.array(vds_err)[i_increasing_chi]
-    return chis, vds, vds_err
+    i_increasing_x = np.argsort(xs)
+    xs = np.array(xs)[i_increasing_x]
+    ys = np.array(ys)[i_increasing_x]
+    ys_err = np.array(ys_err)[i_increasing_x]
+    return xs, ys, ys_err
