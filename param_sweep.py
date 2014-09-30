@@ -71,7 +71,7 @@ def measure_D_of_Dr(output_dirnames):
         D_rot_0s.append(D_rot_0)
         Ds.append(D_total_mean)
         Ds_err.append(D_total_err)
-    return D_rot_0s, Ds, Ds_err
+    return np.array(D_rot_0s), np.array(Ds), np.array(Ds_err)
 
 
 def measure_D_of_phi(output_dirnames):
@@ -91,7 +91,7 @@ def measure_D_of_phi(output_dirnames):
         phis.append(phi)
         Ds.append(D_total_mean)
         Ds_err.append(D_total_err)
-    return phis, Ds, Ds_err
+    return np.array(phis), np.array(Ds), np.array(Ds_err)
 
 
 def measure_vd_of_chi(output_dirnames):
@@ -111,4 +111,4 @@ def measure_vd_of_chi(output_dirnames):
         chis.append(chi)
         vds.append(v_drift_mean)
         vds_err.append(v_drift_err)
-    return chis, vds, vds_err
+    return np.array(chis), np.array(vds), np.array(vds_err)
