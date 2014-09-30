@@ -109,6 +109,6 @@ def measure_vd_of_chi(output_dirnames):
         chi = first_model.chi
 
         chis.append(chi)
-        vds.append(D_total_mean)
-        vds_err.append(D_total_err)
+        vds.append(v_drift_mean)
+        vds_err.append(v_drift_err)
     return chis, vds, vds_err
