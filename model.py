@@ -118,9 +118,10 @@ class Model(object):
 
     def __str__(self):
         f = format_parameter
+        rc_str = len(self.rc) if self.has_obstacles() else None
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={})')
         return info.format(self.__class__.__name__, self.dim, self.L,
-                           f(self.Rc), len(self.rc), f(self.chi),
+                           f(self.Rc), f(rc_str), f(self.chi),
                            f(self.D_rot_0))
 
 
@@ -320,10 +321,11 @@ class AgentModel(Model):
 
     def __str__(self):
         f = format_parameter
+        rc_str = len(self.rc) if self.has_obstacles() else None
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, '
                 'tumble={}, n={}, memory={})')
         return info.format(self.__class__.__name__, self.dim, self.L,
-                           f(self.Rc), len(self.rc), f(self.chi),
+                           f(self.Rc), f(rc_str), f(self.chi),
                            f(self.D_rot_0),
                            f(self.tumble), self.n, f(self.memory))
 

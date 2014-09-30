@@ -22,7 +22,7 @@ def filename_to_model(filename):
 def make_output_dirname(args):
     fields = []
     for key, val in sorted(args.items()):
-        if key == 'rc':
+        if key == 'rc' and val is not None:
             val = len(args[key])
         fields.append('-'.join([key, model.format_parameter(val)]))
     return ','.join(fields)
