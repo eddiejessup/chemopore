@@ -36,7 +36,7 @@ def run_D_of_phi(super_dirname, output_every, t_upto, resume,
         rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=phi)
         args['rc'] = rc
         args['Rc'] = Rc
-        argses.append(args)
+        argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto,
                            resume)
 
