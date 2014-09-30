@@ -7,10 +7,14 @@ from parameters import defaults, agent_defaults
 
 
 def run_over_Dr(super_dirname, output_every, t_upto, resume,
-                tumble, phi, D_rot_0s):
+                tumble, memory, chi, phi, D_rot_0s):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
+
+    args['fixed_food_gradient'] = True
+    args['memory'] = memory
+    args['chi'] = chi
 
     rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
                        pf=phi)
