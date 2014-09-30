@@ -21,8 +21,7 @@ def run_D_of_Dr(super_dirname, output_every, t_upto, resume,
     for D_rot_0 in D_rot_0s:
         args['D_rot_0'] = D_rot_0
         argses.append(args.copy())
-    multirun.pool_run_args(argses, super_dirname, output_every, t_upto,
-                           resume)
+    multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
 def run_D_of_phi(super_dirname, output_every, t_upto, resume,
@@ -37,8 +36,7 @@ def run_D_of_phi(super_dirname, output_every, t_upto, resume,
         args['rc'] = rc
         args['Rc'] = Rc
         argses.append(args.copy())
-    multirun.pool_run_args(argses, super_dirname, output_every, t_upto,
-                           resume)
+    multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
 def measure_D_of_Dr(output_dirnames):
