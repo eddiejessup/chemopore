@@ -6,42 +6,32 @@ import multirun
 from parameters import defaults, agent_defaults
 
 
-def run_over_x(super_dirname, output_every, t_upto, resume,
-               tumble, memory,
-               x_key, chi, phi, D_rot_0):
+def run_param_sweep(super_dirname, output_every, t_upto, resume,
+                    tumble, memory,
+                    chis, phis, D_rot_0s):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
     args['fixed_food_gradient'] = True
     args['memory'] = memory
 
-    if x_key == 'chi':
-        xs = chi
-    else:
-        args['chi'] = chi
-    if x_key == 'D_rot_0':
-        xs = D_rot_0
-    else:
-        args['D_rot_0'] = D_rot_0
-    if x_key == 'phi':
-        xs = phi
-    else:
-        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
-                           pf=phi)
-        args['rc'] = rc
-        args['Rc'] = Rc
+    if isinstance(chis, float):
+        chis = [chis]
+    if isinstance(phis, float):
+        phis = [phis]
+    if isinstance(D_rot_0s, float):
+        D_rot_0s = [D_rot_0s]
 
     argses = []
-    for x in xs:
-        if x_key == 'chi':
-            args['chi'] = x
-        elif x_key == 'phi':
-            rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=x)
-            args['rc'] = rc
-            args['Rc'] = Rc
-        elif x_key == 'D_rot_0':
-            args['D_rot_0'] = x
-        argses.append(args.copy())
+    for phi in phis:
+        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=phi)
+        args['rc'] = rc
+        args['Rc'] = Rc
+        for chi in chis:
+            args['chi'] = chi
+            for D_rot_0 in D_rot_0s:
+                args['D_rot_0'] = D_rot_0
+                argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
