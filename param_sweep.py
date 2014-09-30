@@ -46,8 +46,9 @@ def run_over_chi(super_dirname, output_every, t_upto, resume,
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
-    args['memory'] = memory
+
     args['fixed_food_gradient'] = True
+    args['memory'] = memory
 
     argses = []
     for chi in chis:
