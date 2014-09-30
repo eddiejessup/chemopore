@@ -6,7 +6,7 @@ import multirun
 from parameters import defaults, agent_defaults
 
 
-def run_D_of_Dr(super_dirname, output_every, t_upto, resume,
+def run_over_Dr(super_dirname, output_every, t_upto, resume,
                 tumble, packing_fraction, D_rot_0s):
     args = defaults.copy()
     args.update(agent_defaults)
@@ -24,7 +24,7 @@ def run_D_of_Dr(super_dirname, output_every, t_upto, resume,
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
-def run_D_of_phi(super_dirname, output_every, t_upto, resume,
+def run_over_phi(super_dirname, output_every, t_upto, resume,
                  tumble, phis):
     args = defaults.copy()
     args.update(agent_defaults)
@@ -39,8 +39,8 @@ def run_D_of_phi(super_dirname, output_every, t_upto, resume,
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
-def run_vd_of_chi(super_dirname, output_every, t_upto, resume,
-                  tumble, memory, chis):
+def run_over_chi(super_dirname, output_every, t_upto, resume,
+                 tumble, memory, chis):
     args = defaults.copy()
     args.update(agent_defaults)
     args['tumble'] = tumble
