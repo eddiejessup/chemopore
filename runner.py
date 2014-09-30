@@ -70,7 +70,7 @@ class Runner(object):
         with open(filename, 'wb') as file:
             pickle.dump(self.model, file)
 
-    def __str__(self):
+    def __repr__(self):
         info = '{}(out={}, model={})'
         return info.format(self.__class__.__name__, basename(self.output_dir),
                            self.model)

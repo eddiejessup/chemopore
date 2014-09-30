@@ -116,7 +116,7 @@ class Model(object):
         self.i += 1
         self.t += self.dt
 
-    def __str__(self):
+    def __repr__(self):
         f = format_parameter
         rc_str = len(self.rc) if self.has_obstacles() else None
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={})')
@@ -319,7 +319,7 @@ class AgentModel(Model):
         self.update_positions()
         Model.iterate(self)
 
-    def __str__(self):
+    def __repr__(self):
         f = format_parameter
         rc_str = len(self.rc) if self.has_obstacles() else None
         info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, '
