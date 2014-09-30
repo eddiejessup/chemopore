@@ -45,6 +45,7 @@ def run_vd_of_chi(super_dirname, output_every, t_upto, resume,
     args.update(agent_defaults)
     args['tumble'] = tumble
     args['memory'] = memory
+    args['fixed_food_gradient'] = True
 
     argses = []
     for chi in chis:

@@ -128,11 +128,12 @@ class Model(object):
 class AgentModel(Model):
     def __init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc, Rc, dx,
                  food_0, gamma, D_food,
-                 tumble, dt_chemo, memory, t_mem):
+                 tumble, dt_chemo, memory, t_mem, fixed_food_gradient):
         self.tumble = tumble
         self.dt_chemo = dt_chemo
         self.memory = memory
         self.t_mem = t_mem
+        self.fixed_food_gradient = fixed_food_gradient
         Model.__init__(self, L, dim, dt, rho_0, v_0, D_rot_0, chi, seed, rc,
                        Rc, dx, food_0, gamma, D_food)
 
@@ -157,6 +158,9 @@ class AgentModel(Model):
         if self.chi and self.dt_chemo < self.dt:
             raise Exception('Chemotaxis time-step must be at least '
                             'the system timestep.')
+
+    def has_food_field(self):
+        return Model.has_food_field(self) and not self.fixed_food_gradient
 
     def initialise_particles(self):
         # Intitialise velocities
@@ -215,15 +219,22 @@ class AgentModel(Model):
         if self.chi:
             # Update D_rot every `ever_chemo` iterations
             if not self.i % self.every_chemo:
-                inds_close = self.get_inds_close()
+                if not self.fixed_food_gradient:
+                    inds_close = self.get_inds_close()
                 if self.memory:
-                    c_cur = self.food[inds_close]
+                    if not self.fixed_food_gradient:
+                        c_cur = self.food[inds_close]
+                    else:
+                        c_cur = self.get_unwrapped_r()[:, 0]
                     self.c_mem[:, 1:] = self.c_mem.copy()[:, :-1]
                     self.c_mem[:, 0] = c_cur
                     v_dot_grad_c = np.sum(self.c_mem * self.K_dt_chemo, axis=1)
                 else:
-                    grad_c = self.food.grad().T[inds_close]
-                    v_dot_grad_c = np.sum(self.v * grad_c, axis=-1)
+                    if not self.fixed_food_gradient:
+                        grad_c = self.food.grad().T[inds_close]
+                        v_dot_grad_c = np.sum(self.v * grad_c, axis=-1)
+                    else:
+                        v_dot_grad_c = self.v[:, 0]
 
                 # Calculate fitness and chemotactic rotational diffusion
                 # constant
