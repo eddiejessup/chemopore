@@ -9,10 +9,12 @@ from itertools import product
 
 def run_param_sweep(super_dirname, output_every, t_upto, resume,
                     tumbles, memorys,
-                    chis, phis, D_rot_0s):
+                    chis, phis, D_rot_0s,
+                    **kwargs):
     args = defaults.copy()
     args.update(agent_defaults)
     args['fixed_food_gradient'] = True
+    args.update(kwargs)
 
     if isinstance(chis, float):
         chis = [chis]
