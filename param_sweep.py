@@ -4,6 +4,7 @@ import dynamics
 from ciabatta import pack
 import multirun
 from parameters import defaults, agent_defaults
+from itertools import product
 
 
 def run_param_sweep(super_dirname, output_every, t_upto, resume,
@@ -25,20 +26,18 @@ def run_param_sweep(super_dirname, output_every, t_upto, resume,
         memorys = [memorys]
 
     argses = []
-    for tumble in tumbles:
-        args['tumble'] = tumble
-        for memory in memorys:
+    for phi in phis:
+        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
+                           pf=phi)
+        args['rc'] = rc
+        args['Rc'] = Rc
+        for tumble, memory, chi, D_rot_0 in product(tumbles, memorys,
+                                                    chis, D_rot_0s):
+            args['tumble'] = tumble
             args['memory'] = memory
-            for phi in phis:
-                rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
-                                   pf=phi)
-                args['rc'] = rc
-                args['Rc'] = Rc
-                for chi in chis:
-                    args['chi'] = chi
-                    for D_rot_0 in D_rot_0s:
-                        args['D_rot_0'] = D_rot_0
-                        argses.append(args.copy())
+            args['chi'] = chi
+            args['D_rot_0'] = D_rot_0
+            argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
