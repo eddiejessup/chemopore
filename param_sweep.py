@@ -7,13 +7,11 @@ from parameters import defaults, agent_defaults
 
 
 def run_param_sweep(super_dirname, output_every, t_upto, resume,
-                    tumble, memory,
+                    tumbles, memorys,
                     chis, phis, D_rot_0s):
     args = defaults.copy()
     args.update(agent_defaults)
-    args['tumble'] = tumble
     args['fixed_food_gradient'] = True
-    args['memory'] = memory
 
     if isinstance(chis, float):
         chis = [chis]
@@ -21,17 +19,26 @@ def run_param_sweep(super_dirname, output_every, t_upto, resume,
         phis = [phis]
     if isinstance(D_rot_0s, float):
         D_rot_0s = [D_rot_0s]
+    if isinstance(tumbles, bool):
+        tumbles = [tumbles]
+    if isinstance(memorys, bool):
+        memorys = [memorys]
 
     argses = []
-    for phi in phis:
-        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'], pf=phi)
-        args['rc'] = rc
-        args['Rc'] = Rc
-        for chi in chis:
-            args['chi'] = chi
-            for D_rot_0 in D_rot_0s:
-                args['D_rot_0'] = D_rot_0
-                argses.append(args.copy())
+    for tumble in tumbles:
+        args['tumble'] = tumble
+        for memory in memorys:
+            args['memory'] = memory
+            for phi in phis:
+                rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
+                                   pf=phi)
+                args['rc'] = rc
+                args['Rc'] = Rc
+                for chi in chis:
+                    args['chi'] = chi
+                    for D_rot_0 in D_rot_0s:
+                        args['D_rot_0'] = D_rot_0
+                        argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
