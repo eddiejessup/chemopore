@@ -10,6 +10,7 @@ from itertools import product
 def run_param_sweep(super_dirname, output_every, t_upto, resume,
                     tumbles, memorys,
                     chis, phis, D_rot_0s,
+                    seeds,
                     **kwargs):
     args = defaults.copy()
     args.update(agent_defaults)
@@ -26,20 +27,24 @@ def run_param_sweep(super_dirname, output_every, t_upto, resume,
         tumbles = [tumbles]
     if isinstance(memorys, bool):
         memorys = [memorys]
+    if isinstance(seeds, int):
+        seeds = [seeds]
 
     argses = []
-    for phi in phis:
-        rc, Rc = pack.pack(args['dim'], args['Rc'], args['L'],
-                           seed=args['seed'], pf=phi)
-        args['rc'] = rc
-        args['Rc'] = Rc
-        for tumble, memory, chi, D_rot_0 in product(tumbles, memorys,
-                                                    chis, D_rot_0s):
-            args['tumble'] = tumble
-            args['memory'] = memory
-            args['chi'] = chi
-            args['D_rot_0'] = D_rot_0
-            argses.append(args.copy())
+    for seed in seeds:
+        args['seed'] = seed
+        for phi in phis:
+            rc, Rc = pack.pack(args['dim'], args['Rc'], args['L'],
+                               seed=args['seed'], pf=phi)
+            args['rc'] = rc
+            args['Rc'] = Rc
+            for tumble, memory, chi, D_rot_0 in product(tumbles, memorys,
+                                                        chis, D_rot_0s):
+                args['tumble'] = tumble
+                args['memory'] = memory
+                args['chi'] = chi
+                args['D_rot_0'] = D_rot_0
+                argses.append(args.copy())
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
