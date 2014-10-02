@@ -29,8 +29,8 @@ def run_param_sweep(super_dirname, output_every, t_upto, resume,
 
     argses = []
     for phi in phis:
-        rc, Rc = pack.pack(args['dim'], args['Rc'], args['seed'],
-                           pf=phi)
+        rc, Rc = pack.pack(args['dim'], args['Rc'], args['L'],
+                           seed=args['seed'], pf=phi)
         args['rc'] = rc
         args['Rc'] = Rc
         for tumble, memory, chi, D_rot_0 in product(tumbles, memorys,
