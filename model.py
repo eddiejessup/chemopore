@@ -119,10 +119,10 @@ class Model(object):
     def __repr__(self):
         f = format_parameter
         rc_str = len(self.rc) if self.has_obstacles() else None
-        info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={})')
+        info = '{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, seed={})'
         return info.format(self.__class__.__name__, self.dim, self.L,
                            f(self.Rc), f(rc_str), f(self.chi),
-                           f(self.D_rot_0))
+                           f(self.D_rot_0), self.seed)
 
 
 class AgentModel(Model):
@@ -333,11 +333,11 @@ class AgentModel(Model):
     def __repr__(self):
         f = format_parameter
         rc_str = len(self.rc) if self.has_obstacles() else None
-        info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, '
+        info = ('{}(d={}, L={}, Rc={}, nc={}, chi={}, D_rot_0={}, seed={}, '
                 'tumble={}, n={}, memory={})')
         return info.format(self.__class__.__name__, self.dim, self.L,
                            f(self.Rc), f(rc_str), f(self.chi),
-                           f(self.D_rot_0),
+                           f(self.D_rot_0), self.seed,
                            f(self.tumble), self.n, f(self.memory))
 
 
