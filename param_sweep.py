@@ -5,6 +5,7 @@ from ciabatta import pack
 import multirun
 from parameters import defaults, agent_defaults
 from itertools import product
+from scipy.stats import sem
 
 
 def run_param_sweep(super_dirname, output_every, t_upto, resume,
@@ -48,40 +49,65 @@ def run_param_sweep(super_dirname, output_every, t_upto, resume,
     multirun.pool_run_args(argses, super_dirname, output_every, t_upto, resume)
 
 
-def measure_y_of_x(output_dirnames, x_key, y_key):
-    xs, ys, ys_err = [], [], []
+def group_seeds(output_dirnames, x_key):
+    seed_groups = {}
     for output_dirname in output_dirnames:
         output_filenames = get_filenames(output_dirname)
         if not output_filenames:
             continue
-        first_model = filename_to_model(output_filenames[0])
-        recent_model = filename_to_model(output_filenames[-1])
-        dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
-        (D_mean, D_err, v_drift_mean, v_drift_err,
-         D_total_mean, D_total_err) = dynamics.particle_dynamics(dr, dt)
+        model = filename_to_model(output_filenames[0])
 
         if x_key == 'chi':
-            x = first_model.chi
+            x = model.chi
         elif x_key == 'Dr':
-            x = first_model.D_rot_0
+            x = model.D_rot_0
         elif x_key == 'phi':
-            x = pack.n_to_pf(first_model.L[0], first_model.dim,
-                             len(first_model.rc), first_model.Rc)
+            x = pack.n_to_pf(model.L[0], model.dim, len(model.rc), model.Rc)
         else:
             raise Exception('Unknown independent variable')
 
-        if y_key == 'D':
-            y = D_total_mean
-            y_err = D_total_err
-        elif y_key == 'vd':
-            y = v_drift_mean[0]
-            y_err = v_drift_err[0]
+        if x in seed_groups:
+            seed_groups[x].append(output_dirname)
         else:
-            raise Exception('Unknown dependent variable')
+            seed_groups[x] = [output_dirname]
+    return seed_groups
 
+
+def output_dirname_to_y(output_dirname, y_key):
+    output_filenames = get_filenames(output_dirname)
+    first_model = filename_to_model(output_filenames[0])
+    recent_model = filename_to_model(output_filenames[-1])
+    dr, dt = dynamics.model_to_dr_dt(recent_model, first_model)
+    (D_mean, D_err, v_drift_mean, v_drift_err,
+     D_total_mean, D_total_err) = dynamics.particle_dynamics(dr, dt)
+    if y_key == 'D':
+        return D_total_mean, D_total_err
+    elif y_key == 'vd':
+        return v_drift_mean[0], v_drift_err[0]
+    else:
+        raise Exception('Unknown dependent variable')
+
+
+def measure_y_of_x(output_dirnames, x_key, y_key):
+    xs, ys, ys_err = [], [], []
+    seed_groups = group_seeds(output_dirnames, x_key)
+    for x, output_dirnames in seed_groups.items():
+        ys_micro, ys_micro_err = [], []
+        for output_dirname in output_dirnames:
+            try:
+                y_micro, y_micro_err = output_dirname_to_y(output_dirname,
+                                                           y_key)
+            except IndexError:
+                continue
+            ys_micro.append(y_micro)
+            ys_micro_err.append(y_micro_err)
+
+        if len(ys_micro) > 1:
+            ys_err.append(sem(ys_micro))
+        else:
+            ys_err.append(ys_micro_err[0])
+        ys.append(np.mean(ys_micro))
         xs.append(x)
-        ys.append(y)
-        ys_err.append(y_err)
 
     i_increasing_x = np.argsort(xs)
     xs = np.array(xs)[i_increasing_x]
